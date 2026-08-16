@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
+export const dynamic = 'force-dynamic';
+
 const CUSTOMER_NAMES = [
   'Aarav Sharma', 'Diya Patel', 'Vivaan Gupta', 'Ananya Iyer', 'Aditya Verma',
   'Ishaan Mukherjee', 'Saanvi Joshi', 'Reyansh Rao', 'Aanya Reddy', 'Arjun Nair',

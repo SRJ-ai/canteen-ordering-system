@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { OrderService } from '@/features/orders/order.service';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const order = await OrderService.createOrder({

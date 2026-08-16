@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { OrderStatus, Role } from '@/types';
 
 export interface OrderItemAddonInput {
@@ -43,29 +44,49 @@ export class OrderService {
     customerName = '',
     customerPhone = '',
   }: CreateOrderParams) {
-    const supabase = createClient();
+    const adminSupabase = createAdminClient();
 
     if (!items || items.length === 0) {
       throw new Error('Order must contain at least one item');
     }
 
-    // 1. Verify and sanitize user_id against profiles table (to avoid FK constraint violations)
+    // 1. Verify and guarantee user_id exists in profiles table
     let validUserId: string | null = null;
     if (userId) {
-      const { data: profile } = await supabase
+      const { data: existingProfile } = await adminSupabase
         .from('profiles')
         .select('id')
         .eq('id', userId)
         .maybeSingle();
-      if (profile) {
-        validUserId = profile.id;
+
+      if (existingProfile) {
+        validUserId = existingProfile.id;
+      } else {
+        // Check if user exists in auth.users
+        const { data: authUser } = await adminSupabase.auth.admin.getUserById(userId);
+        if (authUser?.user) {
+          // Auto-create missing profile row so FK constraint is satisfied
+          const { data: newProfile } = await adminSupabase
+            .from('profiles')
+            .insert({
+              id: userId,
+              email: authUser.user.email,
+              full_name: customerName || (authUser.user.user_metadata?.full_name as string) || 'Customer',
+              phone: customerPhone || null,
+            } as any)
+            .select('id')
+            .maybeSingle();
+          if (newProfile) {
+            validUserId = (newProfile as any).id;
+          }
+        }
       }
     }
 
     // 2. Verify and sanitize table_session_id
     let validSessionId: string | null = null;
     if (tableSessionId) {
-      const { data: session } = await supabase
+      const { data: session } = await adminSupabase
         .from('table_sessions')
         .select('id')
         .eq('id', tableSessionId)
@@ -78,7 +99,7 @@ export class OrderService {
     // 3. Resolve default canteen
     let effectiveCanteenId = canteenId;
     if (effectiveCanteenId) {
-      const { data: canteen } = await supabase
+      const { data: canteen } = await adminSupabase
         .from('canteens')
         .select('id')
         .eq('id', effectiveCanteenId)
@@ -88,7 +109,7 @@ export class OrderService {
       }
     }
     if (!effectiveCanteenId) {
-      const { data: defaultCanteen } = await supabase
+      const { data: defaultCanteen } = await adminSupabase
         .from('canteens')
         .select('id')
         .limit(1)
@@ -98,12 +119,12 @@ export class OrderService {
 
     // 4. Fetch authoritative menu items from database to prevent price tampering
     const itemIds = items.map((i) => i.menu_item_id);
-    const { data: menuItems, error: menuError } = await supabase
+    const { data: menuItems, error: menuError } = await adminSupabase
       .from('menu_items')
       .select('id, name, base_price, is_available')
       .in('id', itemIds);
 
-    if (menuError || !menuItems) {
+    if (menuError || !menuItems || menuItems.length === 0) {
       throw new Error('Failed to retrieve menu items');
     }
 
@@ -136,10 +157,10 @@ export class OrderService {
     const gstTax = Math.round(subtotalAmount * 0.05 * 100) / 100;
     const totalAmount = Math.round((subtotalAmount + gstTax) * 100) / 100;
 
-    const orderNumber = await this.generateOrderNumber(supabase);
+    const orderNumber = await this.generateOrderNumber(adminSupabase);
 
     // 5. Insert order
-    const { data: order, error: orderError } = await supabase
+    const { data: order, error: orderError } = await adminSupabase
       .from('orders')
       .insert({
         user_id: validUserId,
@@ -158,7 +179,7 @@ export class OrderService {
 
     // 6. Insert order items
     for (const item of validatedItems) {
-      const { data: insertedItem, error: itemError } = await supabase
+      const { data: insertedItem, error: itemError } = await adminSupabase
         .from('order_items')
         .insert({
           order_id: order.id,
@@ -177,19 +198,19 @@ export class OrderService {
           addon_option_id: a.addon_option_id,
           price_adjustment: a.price_adjustment || 0,
         }));
-        await supabase.from('order_item_addons').insert(addonRows);
+        await adminSupabase.from('order_item_addons').insert(addonRows);
       }
     }
 
     // 7. Record initial order status history
-    await supabase.from('order_status_history').insert({
+    await adminSupabase.from('order_status_history').insert({
       order_id: order.id,
       status: 'PENDING',
       changed_by: validUserId,
     });
 
     // 8. Record payment row
-    await supabase.from('payments').insert({
+    await adminSupabase.from('payments').insert({
       order_id: order.id,
       amount: totalAmount,
       status: paymentMethod === 'CASH' ? 'PENDING' : 'PAID',
@@ -197,7 +218,7 @@ export class OrderService {
 
     // 9. If customer added note / contact
     if (customerName || customerPhone) {
-      await supabase.from('order_notes').insert({
+      await adminSupabase.from('order_notes').insert({
         order_id: order.id,
         note: `Customer: ${customerName || 'Guest'} (${customerPhone || 'N/A'}) - Paid via ${paymentMethod}`,
         created_by: validUserId,
@@ -208,8 +229,8 @@ export class OrderService {
   }
 
   static async getOrders(userId?: string, userRole?: Role) {
-    const supabase = createClient();
-    let query = supabase
+    const adminSupabase = createAdminClient();
+    let query = adminSupabase
       .from('orders')
       .select(`
         *,
@@ -251,8 +272,8 @@ export class OrderService {
   }
 
   static async getOrderById(orderId: string) {
-    const supabase = createClient();
-    const { data, error } = await supabase
+    const adminSupabase = createAdminClient();
+    const { data, error } = await adminSupabase
       .from('orders')
       .select(`
         *,
@@ -307,7 +328,7 @@ export class OrderService {
     role?: Role,
     cancellationReason?: string
   ) {
-    const supabase = createClient();
+    const adminSupabase = createAdminClient();
     const order = await this.getOrderById(orderId);
     if (!order) throw new Error('Order not found');
 
@@ -329,7 +350,7 @@ export class OrderService {
     // Verify performedBy against profiles table
     let validPerformedBy: string | null = null;
     if (performedBy) {
-      const { data: profile } = await supabase
+      const { data: profile } = await adminSupabase
         .from('profiles')
         .select('id')
         .eq('id', performedBy)
@@ -340,7 +361,7 @@ export class OrderService {
     }
 
     // Update status
-    const { data: updated, error } = await supabase
+    const { data: updated, error } = await adminSupabase
       .from('orders')
       .update({ status: newStatus })
       .eq('id', orderId)
@@ -350,14 +371,14 @@ export class OrderService {
     if (error) throw error;
 
     // Insert history
-    await supabase.from('order_status_history').insert({
+    await adminSupabase.from('order_status_history').insert({
       order_id: orderId,
       status: newStatus,
       changed_by: validPerformedBy,
     });
 
     // Insert audit log
-    await supabase.from('audit_logs').insert({
+    await adminSupabase.from('audit_logs').insert({
       table_name: 'orders',
       record_id: orderId,
       action: `STATUS_CHANGE_TO_${newStatus}`,
