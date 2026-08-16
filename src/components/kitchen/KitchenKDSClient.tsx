@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { updateOrderStatusByStaffAction } from '@/features/orders/order.actions';
+import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -52,10 +53,56 @@ interface KitchenKDSClientProps {
   initialOrders: KitchenOrder[];
 }
 
-export function KitchenKDSClient({ initialOrders }: KitchenKDSClientProps) {
+export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) {
   const [orders, setOrders] = useState<KitchenOrder[]>(initialOrders);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(false);
+
+  const fetchOrders = useCallback(async () => {
+    try {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          order_number,
+          status,
+          total_amount,
+          created_at,
+          table_sessions (
+            tables (
+              table_number
+            )
+          ),
+          order_items (
+            id,
+            quantity,
+            menu_items (
+              name
+            ),
+            order_item_addons (
+              id,
+              menu_item_addon_options (
+                name
+              )
+            )
+          ),
+          order_notes (
+            note
+          )
+        `)
+        .in('status', ['PENDING', 'CONFIRMED', 'ACCEPTED', 'PREPARING', 'READY'])
+        .order('created_at', { ascending: true });
+
+      if (data) setOrders(data as any);
+    } catch (err) {}
+  }, []);
+
+  useEffect(() => {
+    fetchOrders();
+    const interval = setInterval(fetchOrders, 4000);
+    return () => clearInterval(interval);
+  }, [fetchOrders]);
 
   // Status progression action
   const handleTransition = async (orderId: string, nextStatus: any) => {

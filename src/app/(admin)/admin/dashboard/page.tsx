@@ -1,4 +1,7 @@
-import { createClient } from '@/lib/supabase/server';
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,30 +12,52 @@ import {
   CheckCircle2,
   Clock,
   ArrowRight,
-  PlusCircle,
-  QrCode,
   ChefHat,
   TrendingUp,
+  Loader2,
 } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
+export default function DashboardPage() {
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default async function DashboardPage() {
-  const supabase = createClient();
+  useEffect(() => {
+    async function loadDashboard() {
+      try {
+        const supabase = createClient();
+        const { data: allOrders } = await supabase
+          .from('orders')
+          .select('id, status, total_amount, created_at, order_number, table_sessions(tables(table_number))')
+          .order('created_at', { ascending: false });
 
-  // 1. Fetch Orders metrics
-  const { data: allOrders } = await supabase
-    .from('orders')
-    .select('id, status, total_amount, created_at, order_number, table_sessions(tables(table_number))')
-    .order('created_at', { ascending: false });
+        if (allOrders) setOrders(allOrders);
+      } catch (err) {
+        console.error('Error loading dashboard metrics:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
 
-  const orders = allOrders || [];
+    loadDashboard();
+    const interval = setInterval(loadDashboard, 6000);
+    return () => clearInterval(interval);
+  }, []);
+
   const activeOrders = orders.filter((o) => ['PENDING', 'CONFIRMED', 'ACCEPTED', 'PREPARING', 'READY'].includes(o.status));
   const completedOrders = orders.filter((o) => o.status === 'COMPLETED');
   const cancelledOrders = orders.filter((o) => o.status === 'CANCELLED');
 
   const totalRevenue = completedOrders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
   const avgOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
+
+  if (loading && orders.length === 0) {
+    return (
+      <div className="max-w-md mx-auto py-24 text-center space-y-3">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+        <p className="text-xs text-muted-foreground font-semibold">Loading operations telemetry...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -47,7 +72,7 @@ export default async function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/kitchen" target="_blank">
+          <Link href="/kitchen">
             <Button variant="outline" className="rounded-2xl text-xs font-bold bg-white">
               <ChefHat className="h-4 w-4 mr-1.5 text-amber-500" /> Kitchen KDS
             </Button>

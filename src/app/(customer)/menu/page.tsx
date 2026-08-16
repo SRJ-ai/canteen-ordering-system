@@ -1,58 +1,76 @@
-import { createClient } from '@/lib/supabase/server';
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { MenuClient } from '@/components/customer/MenuClient';
+import { Loader2 } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
+export default function MenuPage() {
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [menuItems, setMenuItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default async function MenuPage() {
-  const supabase = createClient();
+  useEffect(() => {
+    async function loadMenu() {
+      try {
+        const supabase = createClient();
+        const { data: cats } = await supabase
+          .from('categories')
+          .select('id, name')
+          .order('name', { ascending: true });
 
-  // 1. Fetch categories
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('id, name')
-    .order('name', { ascending: true });
+        const { data: items } = await supabase
+          .from('menu_items')
+          .select(`
+            id,
+            name,
+            description,
+            base_price,
+            category_id,
+            is_available,
+            categories (
+              name
+            ),
+            menu_item_addons (
+              id,
+              name,
+              is_multiple,
+              is_required,
+              menu_item_addon_options (
+                id,
+                name,
+                price_adjustment
+              )
+            )
+          `)
+          .eq('is_available', true)
+          .order('created_at', { ascending: true });
 
-  // 2. Fetch menu items with addons & options
-  const { data: menuItems, error } = await supabase
-    .from('menu_items')
-    .select(`
-      id,
-      name,
-      description,
-      base_price,
-      category_id,
-      is_available,
-      categories (
-        name
-      ),
-      menu_item_addons (
-        id,
-        name,
-        is_multiple,
-        is_required,
-        menu_item_addon_options (
-          id,
-          name,
-          price_adjustment
-        )
-      )
-    `)
-    .eq('is_available', true)
-    .order('created_at', { ascending: true });
+        if (cats) setCategories(cats);
+        if (items) setMenuItems(items);
+      } catch (err) {
+        console.error('Error loading menu:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
 
-  if (error) {
+    loadMenu();
+  }, []);
+
+  if (loading) {
     return (
-      <div className="bg-destructive/10 text-destructive p-6 rounded-2xl text-center">
-        <h2 className="font-bold text-lg">Unable to load menu</h2>
-        <p className="text-xs mt-1">Please try again in a few moments.</p>
+      <div className="max-w-md mx-auto py-24 text-center space-y-3">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+        <p className="text-xs text-muted-foreground font-semibold">Loading freshly prepared canteen specials...</p>
       </div>
     );
   }
 
   return (
     <MenuClient
-      initialCategories={categories || []}
-      initialMenuItems={(menuItems as any) || []}
+      initialCategories={categories}
+      initialMenuItems={menuItems}
     />
   );
 }

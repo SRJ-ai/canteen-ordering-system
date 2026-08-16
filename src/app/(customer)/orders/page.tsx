@@ -1,44 +1,70 @@
-import { createClient } from '@/lib/supabase/server';
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { History, ArrowRight, Clock, Utensils, MapPin, ReceiptText } from 'lucide-react';
+import { History, ArrowRight, Clock, Utensils, MapPin, ReceiptText, Loader2 } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
+export default function CustomerOrdersPage() {
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default async function CustomerOrdersPage() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  useEffect(() => {
+    async function loadOrders() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
 
-  let query = supabase
-    .from('orders')
-    .select(`
-      id,
-      order_number,
-      status,
-      total_amount,
-      created_at,
-      table_sessions (
-        tables (
-          table_number
-        )
-      ),
-      order_items (
-        quantity,
-        menu_items (
-          name
-        )
-      )
-    `)
-    .order('created_at', { ascending: false })
-    .limit(20);
+        let query = supabase
+          .from('orders')
+          .select(`
+            id,
+            order_number,
+            status,
+            total_amount,
+            created_at,
+            table_sessions (
+              tables (
+                table_number
+              )
+            ),
+            order_items (
+              quantity,
+              menu_items (
+                name
+              )
+            )
+          `)
+          .order('created_at', { ascending: false })
+          .limit(20);
 
-  if (user) {
-    query = query.eq('user_id', user.id);
+        if (user) {
+          query = query.eq('user_id', user.id);
+        }
+
+        const { data } = await query;
+        if (data) setOrders(data);
+      } catch (err) {
+        console.error('Error loading orders:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadOrders();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="max-w-md mx-auto py-24 text-center space-y-3">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+        <p className="text-xs text-muted-foreground font-semibold">Loading your past canteen orders...</p>
+      </div>
+    );
   }
-
-  const { data: orders, error } = await query;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -58,7 +84,7 @@ export default async function CustomerOrdersPage() {
         </Link>
       </div>
 
-      {(!orders || orders.length === 0) ? (
+      {orders.length === 0 ? (
         <Card className="rounded-3xl p-12 text-center border-dashed border-slate-200 bg-white space-y-3">
           <div className="bg-orange-50 text-primary w-12 h-12 rounded-full flex items-center justify-center mx-auto">
             <ReceiptText className="h-6 w-6" />

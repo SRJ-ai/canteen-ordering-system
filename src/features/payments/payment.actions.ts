@@ -1,7 +1,5 @@
-'use server';
-
 import { PaymentService } from './payment.service';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/client';
 
 async function requireUser() {
   const supabase = createClient();

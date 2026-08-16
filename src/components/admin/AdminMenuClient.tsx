@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { toggleMenuItemAvailabilityAction, updateMenuItemPriceAction } from '@/server/actions/menu.actions';
+import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -54,10 +54,14 @@ export function AdminMenuClient({
   const handleToggleAvailability = async (item: MenuItem) => {
     setIsUpdating(item.id);
     const newStatus = !item.is_available;
-    const res = await toggleMenuItemAvailabilityAction(item.id, newStatus);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('menu_items')
+      .update({ is_available: newStatus })
+      .eq('id', item.id);
     setIsUpdating(null);
 
-    if (res.success) {
+    if (!error) {
       setItems((prev) =>
         prev.map((i) => (i.id === item.id ? { ...i, is_available: newStatus } : i))
       );
@@ -69,10 +73,14 @@ export function AdminMenuClient({
     if (isNaN(numPrice) || numPrice <= 0) return;
 
     setIsUpdating(itemId);
-    const res = await updateMenuItemPriceAction(itemId, numPrice);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('menu_items')
+      .update({ base_price: numPrice })
+      .eq('id', itemId);
     setIsUpdating(null);
 
-    if (res.success) {
+    if (!error) {
       setItems((prev) =>
         prev.map((i) => (i.id === itemId ? { ...i, base_price: numPrice } : i))
       );

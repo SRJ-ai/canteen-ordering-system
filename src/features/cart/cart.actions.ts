@@ -1,10 +1,5 @@
-'use server';
-
-import { revalidatePath } from 'next/cache';
 import { CartService } from './cart.service';
-
-// Assuming we have some way to get the current user in server actions
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/client';
 
 async function requireUser() {
   const supabase = createClient();
@@ -27,7 +22,6 @@ export async function addToCartAction(menuItemId: string, quantity: number = 1) 
   try {
     const user = await requireUser();
     await CartService.addToCart(user.id, menuItemId, quantity);
-    revalidatePath('/cart'); // adjust path based on app structure
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -38,7 +32,6 @@ export async function removeFromCartAction(cartItemId: string) {
   try {
     const user = await requireUser();
     await CartService.removeFromCart(user.id, cartItemId);
-    revalidatePath('/cart');
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -49,7 +42,6 @@ export async function clearCartAction() {
   try {
     const user = await requireUser();
     await CartService.clearCart(user.id);
-    revalidatePath('/cart');
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };

@@ -1,6 +1,4 @@
-'use server'
-
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/client';
 import { OrderStatus } from '@/types';
 import { AuthService } from '../services/auth.service';
 

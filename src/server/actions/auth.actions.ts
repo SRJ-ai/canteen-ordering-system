@@ -1,9 +1,4 @@
-'use server';
-
-import { createClient } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
-import { AuthService } from '../services/auth.service';
+import { createClient } from '@/lib/supabase/client';
 
 export async function login(formData: FormData) {
   const email = formData.get('email') as string;
@@ -13,7 +8,7 @@ export async function login(formData: FormData) {
     return { error: 'Email and password are required' };
   }
 
-  const supabase = await createClient();
+  const supabase = createClient();
   const { error } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -23,7 +18,6 @@ export async function login(formData: FormData) {
     return { error: error.message };
   }
 
-  revalidatePath('/', 'layout');
   return { success: true };
 }
 
@@ -56,41 +50,23 @@ export async function signup(formData: FormData) {
   }
 
   if (data?.user) {
-    // Insert into profiles
     await supabase.from('profiles').upsert({
       id: data.user.id,
-      first_name: firstName || '',
-      last_name: lastName || '',
+      full_name: `${firstName} ${lastName}`.trim(),
       phone: phone || null,
     });
-
-    // Fetch customer role ID
-    const { data: roleData } = await supabase
-      .from('roles')
-      .select('id')
-      .eq('name', 'CUSTOMER')
-      .single();
-
-    if (roleData) {
-      await supabase.from('user_roles').upsert({
-        user_id: data.user.id,
-        role_id: roleData.id,
-      });
-    }
   }
 
-  revalidatePath('/', 'layout');
   return { success: true };
 }
 
 export async function logout() {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { error } = await supabase.auth.signOut();
 
   if (error) {
     return { error: error.message };
   }
 
-  revalidatePath('/', 'layout');
-  redirect('/login');
+  return { success: true };
 }

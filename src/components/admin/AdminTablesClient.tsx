@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
+import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,8 +27,23 @@ interface TableItem {
   };
 }
 
-export function AdminTablesClient({ initialTables, appUrl }: { initialTables: TableItem[]; appUrl: string }) {
+export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initialTables?: TableItem[]; appUrl?: string }) {
+  const [tables, setTables] = useState<TableItem[]>(initialTables);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadTables() {
+      try {
+        const supabase = createClient();
+        const { data } = await supabase
+          .from('tables')
+          .select('*, canteens(name)')
+          .order('table_number', { ascending: true });
+        if (data) setTables(data as any);
+      } catch (err) {}
+    }
+    loadTables();
+  }, []);
 
   const handleCopyLink = (token: string) => {
     const url = `${appUrl}/t/${token}`;

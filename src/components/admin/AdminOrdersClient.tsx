@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { updateOrderStatusByStaffAction } from '@/features/orders/order.actions';
+import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -77,10 +78,58 @@ const CANCELLATION_REASONS = [
   { value: 'OTHER', label: 'Other Operational Issue' },
 ];
 
-export function AdminOrdersClient({ initialOrders }: { initialOrders: AdminOrder[] }) {
+export function AdminOrdersClient({ initialOrders = [] }: { initialOrders?: AdminOrder[] }) {
   const [orders, setOrders] = useState<AdminOrder[]>(initialOrders);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const fetchOrders = useCallback(async () => {
+    try {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          order_number,
+          status,
+          total_amount,
+          created_at,
+          table_sessions (
+            tables (
+              table_number
+            )
+          ),
+          order_items (
+            id,
+            quantity,
+            unit_price,
+            subtotal,
+            menu_items (
+              name
+            ),
+            order_item_addons (
+              id,
+              price_adjustment,
+              menu_item_addon_options (
+                name
+              )
+            )
+          ),
+          order_notes (
+            note
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (data) setOrders(data as any);
+    } catch (err) {}
+  }, []);
+
+  useEffect(() => {
+    fetchOrders();
+    const interval = setInterval(fetchOrders, 4000);
+    return () => clearInterval(interval);
+  }, [fetchOrders]);
 
   // Selected Order for Cancellation Modal
   const [cancellingOrder, setCancellingOrder] = useState<AdminOrder | null>(null);

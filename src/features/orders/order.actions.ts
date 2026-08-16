@@ -1,9 +1,5 @@
-'use server';
-
-import { revalidatePath } from 'next/cache';
-import { cookies } from 'next/headers';
 import { OrderService, OrderItemInput } from './order.service';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/client';
 import { OrderStatus, Role } from '@/types';
 
 export async function placeOrderAction(data: {
@@ -16,9 +12,17 @@ export async function placeOrderAction(data: {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    // Check table session from cookies
-    const cookieStore = cookies();
-    const tableSessionId = cookieStore.get('canteen_table_session')?.value || null;
+    // Check table session from localStorage or cookie if in browser
+    let tableSessionId: string | null = null;
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('canteen_table_info');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          tableSessionId = parsed.sessionId || null;
+        }
+      } catch (e) {}
+    }
 
     const order = await OrderService.createOrder({
       userId: user?.id || null,
@@ -28,10 +32,6 @@ export async function placeOrderAction(data: {
       customerName: data.customerName,
       customerPhone: data.customerPhone,
     });
-
-    revalidatePath('/orders');
-    revalidatePath('/kitchen');
-    revalidatePath('/admin/orders');
 
     return { success: true, orderId: order.id, orderNumber: order.order_number };
   } catch (error: any) {
@@ -61,11 +61,6 @@ export async function cancelCustomerOrderAction(orderId: string) {
       'Cancelled by customer before acceptance'
     );
 
-    revalidatePath(`/orders/${orderId}`);
-    revalidatePath('/orders');
-    revalidatePath('/kitchen');
-    revalidatePath('/admin/orders');
-
     return { success: true, order };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -88,11 +83,6 @@ export async function updateOrderStatusByStaffAction(
       'ADMIN',
       cancellationReason
     );
-
-    revalidatePath(`/orders/${orderId}`);
-    revalidatePath('/orders');
-    revalidatePath('/kitchen');
-    revalidatePath('/admin/orders');
 
     return { success: true, order };
   } catch (error: any) {

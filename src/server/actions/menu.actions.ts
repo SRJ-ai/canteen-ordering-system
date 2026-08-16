@@ -1,7 +1,4 @@
-'use server';
-
-import { revalidatePath } from 'next/cache';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/client';
 
 export async function toggleMenuItemAvailabilityAction(itemId: string, isAvailable: boolean) {
   try {
@@ -15,8 +12,6 @@ export async function toggleMenuItemAvailabilityAction(itemId: string, isAvailab
 
     if (error) throw error;
 
-    revalidatePath('/menu');
-    revalidatePath('/admin/menu');
     return { success: true, item: data };
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to update item availability' };
@@ -35,8 +30,6 @@ export async function updateMenuItemPriceAction(itemId: string, newPrice: number
 
     if (error) throw error;
 
-    revalidatePath('/menu');
-    revalidatePath('/admin/menu');
     return { success: true, item: data };
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to update price' };

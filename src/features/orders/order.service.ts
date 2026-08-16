@@ -1,6 +1,17 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/client';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { OrderStatus, Role } from '@/types';
+
+function getClient() {
+  if (typeof window !== 'undefined' || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return createClient();
+  }
+  try {
+    return createAdminClient();
+  } catch {
+    return createClient();
+  }
+}
 
 export interface OrderItemAddonInput {
   addon_option_id: string;
@@ -44,7 +55,7 @@ export class OrderService {
     customerName = '',
     customerPhone = '',
   }: CreateOrderParams) {
-    const adminSupabase = createAdminClient();
+    const adminSupabase = getClient();
 
     if (!items || items.length === 0) {
       throw new Error('Order must contain at least one item');
@@ -229,7 +240,7 @@ export class OrderService {
   }
 
   static async getOrders(userId?: string, userRole?: Role) {
-    const adminSupabase = createAdminClient();
+    const adminSupabase = getClient();
     let query = adminSupabase
       .from('orders')
       .select(`
@@ -272,7 +283,7 @@ export class OrderService {
   }
 
   static async getOrderById(orderId: string) {
-    const adminSupabase = createAdminClient();
+    const adminSupabase = getClient();
     const { data, error } = await adminSupabase
       .from('orders')
       .select(`
@@ -328,7 +339,7 @@ export class OrderService {
     role?: Role,
     cancellationReason?: string
   ) {
-    const adminSupabase = createAdminClient();
+    const adminSupabase = getClient();
     const order = await this.getOrderById(orderId);
     if (!order) throw new Error('Order not found');
 
