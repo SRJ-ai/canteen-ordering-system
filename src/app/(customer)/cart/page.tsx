@@ -11,7 +11,15 @@ import { ShoppingBag, Plus, Minus, Trash2, ArrowRight, ArrowLeft, UtensilsCrosse
 
 export default function CartPage() {
   const router = useRouter();
-  const { items, itemCount, subtotal, tax, total, updateQuantity, removeItem, clearCart, tableInfo } = useCart();
+  const { items, itemCount, subtotal, tax, total, updateQuantity, removeItem, clearCart, tableInfo, isLoaded } = useCart();
+
+  if (!isLoaded) {
+    return (
+      <div className="max-w-md mx-auto py-24 text-center text-xs text-muted-foreground font-medium">
+        Loading cart items...
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (

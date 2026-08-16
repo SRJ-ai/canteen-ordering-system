@@ -14,13 +14,22 @@ import { ArrowLeft, CheckCircle2, QrCode, Banknote, CreditCard, ShieldCheck, Spa
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, total, subtotal, tax, clearCart, tableInfo } = useCart();
+  const { items, total, subtotal, tax, clearCart, tableInfo, isLoaded } = useCart();
 
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'UPI' | 'CASH' | 'CARD'>('UPI');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  if (!isLoaded) {
+    return (
+      <div className="max-w-md mx-auto py-24 text-center space-y-3">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+        <p className="text-xs text-muted-foreground font-medium">Preparing your order summary...</p>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
