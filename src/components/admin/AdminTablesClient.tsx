@@ -1,19 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { QRCodeSVG } from 'qrcode.react';
 import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Printer,
   QrCode,
   Copy,
   Check,
   ExternalLink,
-  PlusCircle,
   MapPin,
   Utensils,
 } from 'lucide-react';
@@ -27,11 +26,31 @@ interface TableItem {
   };
 }
 
+const DEFAULT_GPREC_TABLES: TableItem[] = [
+  { id: '1', table_number: 'Table 01', qr_code: 'qr_tbl_01_8fK29xQm7P7wL9a1', canteens: { name: 'GPREC Main Food Court' } },
+  { id: '2', table_number: 'Table 02', qr_code: 'qr_tbl_02_9gL30yRn8Q8xM0b2', canteens: { name: 'GPREC Main Food Court' } },
+  { id: '3', table_number: 'Table 03', qr_code: 'qr_tbl_03_0hM41zSo9R9yN1c3', canteens: { name: 'GPREC Main Food Court' } },
+  { id: '4', table_number: 'Table 04', qr_code: 'qr_tbl_04_1iN52aTp0S0zO2d4', canteens: { name: 'GPREC Main Food Court' } },
+  { id: '5', table_number: 'Table 05', qr_code: 'qr_tbl_05_2jO63bUq1T1aP3e5', canteens: { name: 'GPREC Main Food Court' } },
+  { id: '6', table_number: 'Table 06', qr_code: 'qr_tbl_06_3kP74cVr2U2bQ4f6', canteens: { name: 'GPREC Main Food Court' } },
+  { id: '7', table_number: 'Table 07', qr_code: 'qr_tbl_07_4lQ85dWs3V3cR5g7', canteens: { name: 'GPREC Main Food Court' } },
+  { id: '8', table_number: 'Table 08', qr_code: 'qr_tbl_08_5mR96eXt4W4dS6h8', canteens: { name: 'GPREC Main Food Court' } },
+  { id: '9', table_number: 'Table 09', qr_code: 'qr_tbl_09_6nS07fYu5X5eT7i9', canteens: { name: 'GPREC Main Food Court' } },
+  { id: '10', table_number: 'Table 10', qr_code: 'qr_tbl_10_7oT18gZv6Y6fU8j0', canteens: { name: 'GPREC Main Food Court' } },
+];
+
 export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initialTables?: TableItem[]; appUrl?: string }) {
-  const [tables, setTables] = useState<TableItem[]>(initialTables);
+  const [tables, setTables] = useState<TableItem[]>(
+    initialTables.length > 0 ? initialTables : DEFAULT_GPREC_TABLES
+  );
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
+  const [baseUrl, setBaseUrl] = useState(appUrl);
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setBaseUrl(window.location.origin);
+    }
+
     async function loadTables() {
       try {
         const supabase = createClient();
@@ -39,14 +58,16 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
           .from('tables')
           .select('*, canteens(name)')
           .order('table_number', { ascending: true });
-        if (data) setTables(data as any);
+        if (data && data.length > 0) {
+          setTables(data as any);
+        }
       } catch (err) {}
     }
     loadTables();
   }, []);
 
   const handleCopyLink = (token: string) => {
-    const url = `${appUrl}/t/${token}`;
+    const url = `${baseUrl || ''}/t/${token}`;
     navigator.clipboard.writeText(url);
     setCopiedToken(token);
     setTimeout(() => setCopiedToken(null), 2000);
@@ -62,7 +83,7 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Table & QR Code Manager
+            GPREC Table & QR Code Manager
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Physical table mapping, crypto-secure QR tokens, and printable table tent cards.
@@ -77,8 +98,8 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
 
       {/* Tables Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {initialTables.map((table) => {
-          const qrUrl = `${appUrl}/t/${table.qr_code}`;
+        {tables.map((table) => {
+          const qrUrl = `${baseUrl || ''}/t/${table.qr_code}`;
           const isCopied = copiedToken === table.qr_code;
 
           return (
@@ -97,7 +118,7 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
                         {table.table_number}
                       </CardTitle>
                       <CardDescription className="text-[11px]">
-                        {table.canteens?.name || 'Central Food Court'}
+                        {table.canteens?.name || 'GPREC Food Court'}
                       </CardDescription>
                     </div>
                   </div>
@@ -139,14 +160,14 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
                   {isCopied ? 'Copied' : 'Copy Link'}
                 </Button>
 
-                <a href={qrUrl} target="_blank" rel="noreferrer" className="w-full">
+                <Link href={`/t/${table.qr_code}`} target="_blank" className="w-full">
                   <Button
                     size="sm"
                     className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1"
                   >
                     Test Scan <ExternalLink className="h-3 w-3" />
                   </Button>
-                </a>
+                </Link>
               </CardFooter>
             </Card>
           );
