@@ -72,6 +72,15 @@ async function simulateSingleStudent(userId, tablesMap) {
         .single();
 
       if (ordErr || !order) throw new Error('Order error: ' + ordErr?.message);
+
+      // Attach real dish item
+      await supabase.from('order_items').insert({
+        order_id: order.id,
+        menu_item_id: items[0].id,
+        quantity: 1,
+        unit_price: subtotal,
+        subtotal: subtotal,
+      });
     }
 
     const duration = Date.now() - startTime;

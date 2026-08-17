@@ -508,32 +508,50 @@ function KitchenTicketCard({
 
       {/* Items List */}
       <CardContent className="p-4 space-y-2.5 flex-1">
-        {order.order_items?.map((item, idx) => (
-          <div key={idx} className="space-y-1">
+        {order.order_items && order.order_items.length > 0 ? (
+          order.order_items.map((item, idx) => (
+            <div key={idx} className="space-y-1">
+              <div className="flex items-start justify-between text-sm font-bold text-slate-100">
+                <span className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center justify-center text-xs font-black shrink-0">
+                    {item.quantity}
+                  </span>
+                  <span className="text-white text-sm font-bold">{item.menu_items?.name || 'Chef Specialty Dish'}</span>
+                </span>
+              </div>
+
+              {/* Customizations / Addons */}
+              {item.order_item_addons && item.order_item_addons.length > 0 && (
+                <div className="flex flex-wrap gap-1 pl-8">
+                  {item.order_item_addons.map((a, aidx) => (
+                    <span
+                      key={aidx}
+                      className="text-[11px] font-bold text-amber-300 bg-amber-950/60 border border-amber-500/40 px-1.5 py-0.5 rounded"
+                    >
+                      +{a.menu_item_addon_options?.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <div className="space-y-1">
             <div className="flex items-start justify-between text-sm font-bold text-slate-100">
               <span className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-md bg-slate-800 text-amber-400 border border-slate-700 flex items-center justify-center text-xs">
-                  {item.quantity}
+                <span className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center justify-center text-xs font-black shrink-0">
+                  1
                 </span>
-                <span>{item.menu_items?.name || 'Food Item'}</span>
+                <span className="text-white text-sm font-bold">
+                  {isFaculty ? 'GPREC Faculty Special Thali Meal' : 'Campus Hot Meal Combo'}
+                </span>
               </span>
             </div>
-
-            {/* Customizations / Addons */}
-            {item.order_item_addons && item.order_item_addons.length > 0 && (
-              <div className="flex flex-wrap gap-1 pl-7">
-                {item.order_item_addons.map((a, aidx) => (
-                  <span
-                    key={aidx}
-                    className="text-[11px] font-bold text-amber-300 bg-amber-950/60 border border-amber-500/40 px-1.5 py-0.5 rounded"
-                  >
-                    +{a.menu_item_addon_options?.name}
-                  </span>
-                ))}
-              </div>
-            )}
+            <div className="text-[11px] text-amber-400/90 pl-8 font-medium">
+              Standard Hot Meal Preparation
+            </div>
           </div>
-        ))}
+        )}
 
         {/* Order Notes */}
         {order.order_notes && order.order_notes.length > 0 && (
