@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/context/AuthContext";
 import { DemoSwitcherDock } from "@/components/common/DemoSwitcherDock";
+import { ActiveOrderFloatTracker } from "@/components/customer/ActiveOrderFloatTracker";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           {children}
+          <ActiveOrderFloatTracker />
           <DemoSwitcherDock />
         </AuthProvider>
       </body>

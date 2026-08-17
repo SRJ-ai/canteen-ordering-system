@@ -22,6 +22,8 @@ import {
   Timer,
   GraduationCap,
   Zap,
+  Maximize,
+  Minimize,
 } from 'lucide-react';
 
 interface KitchenOrder {
@@ -61,7 +63,20 @@ export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) 
   const [orders, setOrders] = useState<KitchenOrder[]>(initialOrders);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const seenOrderIds = useRef<Set<string>>(new Set(initialOrders.map((o) => o.id)));
+
+  const toggleFullscreen = () => {
+    if (typeof document !== 'undefined') {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+        setIsFullscreen(true);
+      } else {
+        document.exitFullscreen().catch(() => {});
+        setIsFullscreen(false);
+      }
+    }
+  };
 
   // Helper to check if an order has faculty priority
   const isFacultyOrder = (order: KitchenOrder) => {
@@ -259,6 +274,24 @@ export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) 
           >
             {soundEnabled ? <Volume2 className="h-4 w-4 mr-1.5" /> : <VolumeX className="h-4 w-4 mr-1.5" />}
             {soundEnabled ? 'Chime Alerts ON' : 'Muted'}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleFullscreen}
+            className="bg-slate-800 text-slate-200 hover:bg-slate-700 border-slate-700 rounded-2xl text-xs font-bold"
+            title="Toggle Fullscreen Kitchen Display"
+          >
+            {isFullscreen ? (
+              <>
+                <Minimize className="h-3.5 w-3.5 mr-1" /> Exit
+              </>
+            ) : (
+              <>
+                <Maximize className="h-3.5 w-3.5 mr-1" /> Fullscreen
+              </>
+            )}
           </Button>
 
           <Button
