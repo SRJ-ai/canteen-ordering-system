@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { getOrderDetailsAction, cancelCustomerOrderAction } from '@/features/orders/order.actions';
@@ -20,6 +20,13 @@ import {
   MapPin,
   Receipt,
   Sparkles,
+  Share2,
+  Printer,
+  Volume2,
+  VolumeX,
+  Star,
+  MessageSquare,
+  ThumbsUp,
 } from 'lucide-react';
 
 const ORDER_STEPS = [
@@ -50,6 +57,13 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [hasSpokenReady, setHasSpokenReady] = useState(false);
+  
+  // Rating states
+  const [rating, setRating] = useState<number>(5);
+  const [feedbackTags, setFeedbackTags] = useState<string[]>([]);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
 
   const fetchOrder = React.useCallback(async () => {
     if (!orderId || orderId === 'sample-order') {
@@ -59,13 +73,26 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
     const res = await getOrderDetailsAction(orderId);
     if (res.success && res.order) {
       setOrder(res.order);
+
+      // Voice synthesis announcement when order is READY
+      if (res.order.status === 'READY' && !hasSpokenReady && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        setHasSpokenReady(true);
+        try {
+          const speech = new SpeechSynthesisUtterance(
+            `Attention! Order ${res.order.order_number || 'your meal'} is ready for pickup at the counter!`
+          );
+          speech.rate = 0.95;
+          speech.pitch = 1.05;
+          window.speechSynthesis.speak(speech);
+        } catch (e) {}
+      }
     }
     setLoading(false);
-  }, [orderId]);
+  }, [orderId, hasSpokenReady]);
 
   useEffect(() => {
     fetchOrder();
-    const interval = setInterval(fetchOrder, 5000);
+    const interval = setInterval(fetchOrder, 4000);
     return () => clearInterval(interval);
   }, [fetchOrder]);
 
@@ -80,6 +107,26 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
     } else {
       setErrorMsg(res.error || 'Cannot cancel order once accepted by kitchen.');
     }
+  };
+
+  const handleWhatsAppShare = () => {
+    if (!order) return;
+    const tableNum = order.table_sessions?.tables?.table_number || 'Canteen Table';
+    const itemsSummary = order.order_items?.map((i: any) => `• ${i.quantity}x ${i.menu_items?.name}`).join('\n') || '';
+    const trackUrl = `${window.location.origin}/canteen-ordering-system/orders/?id=${order.id}`;
+
+    const text = `*🍛 GPREC Food Court Order Receipt*\n\n*Order Number:* ${order.order_number}\n*Location:* ${tableNum}\n*Status:* ${order.status}\n\n*Items:*\n${itemsSummary}\n\n*Total Paid:* ₹${order.total_amount}\n\n*Live Order Status:* ${trackUrl}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const toggleTag = (tag: string) => {
+    setFeedbackTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
   };
 
   if (loading) {
@@ -109,21 +156,40 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
   }
 
   const isCancelled = order.status === 'CANCELLED';
+  const isCompleted = order.status === 'COMPLETED';
   const currentStepIndex = isCancelled
     ? -1
     : ORDER_STEPS.findIndex((s) => s.status === order.status);
 
   const canCustomerCancel = order.status === 'PENDING' || order.status === 'CONFIRMED';
+  const tableNum = order.table_sessions?.tables?.table_number || 'Canteen Counter';
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Top Header Controls */}
+      <div className="flex items-center justify-between print:hidden">
         <Link href="/orders">
-          <Button variant="ghost" size="sm" className="rounded-xl text-xs">
+          <Button variant="ghost" size="sm" className="rounded-xl text-xs font-semibold">
             <ArrowLeft className="h-3.5 w-3.5 mr-1" /> All Orders
           </Button>
         </Link>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleWhatsAppShare}
+            className="rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+          >
+            <Share2 className="h-3.5 w-3.5 mr-1.5" /> Share Bill
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePrint}
+            className="rounded-xl text-xs font-semibold text-slate-700"
+          >
+            <Printer className="h-3.5 w-3.5 mr-1" /> Print
+          </Button>
           <Button variant="outline" size="sm" onClick={fetchOrder} className="rounded-xl text-xs">
             <RotateCw className="h-3 w-3 mr-1" /> Refresh
           </Button>
@@ -136,7 +202,8 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
         </div>
       )}
 
-      <Card className="rounded-3xl border border-slate-200/80 shadow-md bg-white overflow-hidden">
+      {/* Main Order Status Card */}
+      <Card className="rounded-3xl border border-slate-200/80 shadow-md bg-white overflow-hidden print:border-none print:shadow-none">
         <div className={`p-6 text-white text-center space-y-2 ${
           isCancelled
             ? 'bg-rose-600'
@@ -144,6 +211,8 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
             ? 'bg-emerald-600 animate-pulse'
             : order.status === 'PREPARING'
             ? 'bg-amber-500'
+            : order.status === 'ACCEPTED'
+            ? 'bg-blue-600'
             : 'bg-slate-900'
         }`}>
           <Badge className="bg-white/20 text-white border-0 text-[10px] font-bold uppercase tracking-wider">
@@ -166,15 +235,16 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
             {isCancelled
               ? 'This order was cancelled. No charges applied.'
               : order.status === 'READY'
-              ? 'Please head to the canteen pickup counter with your order number.'
+              ? 'Please head to the canteen pickup counter with your token number.'
               : order.status === 'PREPARING'
               ? 'Freshly preparing your hot meal. Estimated time: ~5-10 mins.'
               : 'Our kitchen team has received your ticket.'}
           </p>
         </div>
 
+        {/* Progress Step Bar */}
         {!isCancelled && (
-          <div className="p-6 bg-slate-50/60 border-b border-slate-100">
+          <div className="p-6 bg-slate-50/60 border-b border-slate-100 print:hidden">
             <div className="relative flex items-center justify-between max-w-md mx-auto">
               <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-slate-200 z-0">
                 <div
@@ -217,13 +287,12 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
           </div>
         )}
 
+        {/* Details & Bill */}
         <CardContent className="p-6 space-y-4">
           <div className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 p-3 rounded-2xl border">
             <div className="flex items-center gap-1.5 font-semibold text-slate-800">
               <MapPin className="h-4 w-4 text-primary" />
-              {order.table_sessions?.tables?.table_number
-                ? `Table: ${order.table_sessions.tables.table_number}`
-                : 'Central Food Court'}
+              {tableNum} &bull; GPREC Food Court
             </div>
             <div>Placed: {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
           </div>
@@ -256,15 +325,88 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
               ))}
 
               <div className="pt-3 border-t flex justify-between items-center text-base font-extrabold text-slate-900">
-                <span>Total Paid</span>
-                <span className="text-primary text-xl">₹{order.total_amount}</span>
+                <span>Total Amount Paid</span>
+                <span className="text-primary text-xl font-black">₹{order.total_amount}</span>
               </div>
             </div>
           </div>
+
+          {/* 5-Star Meal Rating & Review Widget when order is COMPLETED */}
+          {isCompleted && (
+            <div className="p-5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 rounded-2xl space-y-3 print:hidden">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <Sparkles className="h-4 w-4 text-amber-500" /> How was your meal?
+                </span>
+                {ratingSubmitted && (
+                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                    ✓ Feedback Saved
+                  </Badge>
+                )}
+              </div>
+
+              {!ratingSubmitted ? (
+                <div className="space-y-3">
+                  {/* Star Selector */}
+                  <div className="flex items-center gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setRating(star)}
+                        className="p-1 hover:scale-125 transition-transform"
+                      >
+                        <Star
+                          className={`h-7 w-7 ${
+                            star <= rating
+                              ? 'fill-amber-400 text-amber-400'
+                              : 'text-slate-300'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                    <span className="text-xs font-extrabold text-amber-900 ml-2">
+                      {rating === 5 ? 'Exceptional! 🌟' : rating === 4 ? 'Great 👍' : 'Good 👌'}
+                    </span>
+                  </div>
+
+                  {/* Feedback Tags */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {['Super Crispy 🔥', 'Hot & Fresh 🍲', 'Fast Counter Service ⚡', 'Authentic Taste 😋', 'Perfect Spice 🌶️'].map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => toggleTag(tag)}
+                        className={`text-xs px-2.5 py-1 rounded-xl font-semibold border transition ${
+                          feedbackTags.includes(tag)
+                            ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
+                            : 'bg-white text-slate-700 border-amber-200 hover:bg-amber-100/50'
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+
+                  <Button
+                    size="sm"
+                    onClick={() => setRatingSubmitted(true)}
+                    className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold mt-1"
+                  >
+                    Submit Feedback & Ratings
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-xs text-slate-600">
+                  Thank you for rating your dining experience at GPREC Food Court!
+                </p>
+              )}
+            </div>
+          )}
         </CardContent>
 
         {canCustomerCancel && (
-          <CardFooter className="p-6 pt-0 border-t border-slate-100 bg-slate-50/50 py-4 flex items-center justify-between">
+          <CardFooter className="p-6 pt-0 border-t border-slate-100 bg-slate-50/50 py-4 flex items-center justify-between print:hidden">
             <div className="text-xs text-muted-foreground">
               Need to change your mind?
             </div>

@@ -98,6 +98,25 @@ export function MenuClient({ initialCategories, initialMenuItems }: MenuClientPr
         <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
       </div>
 
+      {/* Live Kitchen Rush & Estimated Wait Banner */}
+      <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+          </span>
+          <span className="text-xs font-bold text-slate-800">
+            GPREC Kitchen Status: <span className="text-emerald-700 font-extrabold">Open & Active</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+          <span className="bg-amber-50 text-amber-800 border border-amber-200/60 px-2 py-0.5 rounded-lg font-bold text-[11px] flex items-center gap-1">
+            ⚡ Prep Time: ~5-8 mins
+          </span>
+          <span>&bull; Hot Meals Cooked Fresh to Order</span>
+        </div>
+      </div>
+
       {/* Category Pills Navigation */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         <button
