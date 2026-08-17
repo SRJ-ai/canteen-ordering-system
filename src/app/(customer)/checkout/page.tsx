@@ -358,7 +358,7 @@ export default function CheckoutPage() {
         </Card>
 
         {/* Order Summary & Submit */}
-        <Card className="rounded-3xl border border-slate-200/80 shadow-xs bg-white p-6 space-y-4">
+        <Card role="region" aria-label="Final Order Summary" className="rounded-3xl border border-slate-200/80 shadow-xs bg-white p-6 space-y-4">
           <h3 className="font-bold text-sm text-slate-900 border-b pb-3">3. Final Summary</h3>
           <div className="space-y-2 text-sm text-slate-600">
             <div className="flex justify-between">

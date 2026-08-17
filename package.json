@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:all": "node tests/run_all_tests.js"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
