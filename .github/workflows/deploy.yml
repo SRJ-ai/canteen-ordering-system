@@ -37,9 +37,8 @@ jobs:
         env:
           NEXT_PUBLIC_BASE_PATH: "/canteen-ordering-system"
           NEXT_PUBLIC_APP_URL: "https://srj-ai.github.io/canteen-ordering-system"
-          NEXT_PUBLIC_SUPABASE_URL: "https://cwcsojzeuirzbsbkinrp.supabase.co"
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN3Y3NvanpldWlyemJzYmtpbnJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4Nzc4MDMsImV4cCI6MjEwMjQ1MzgwM30.jxs4hX6XOv2QIPOvgax2oaq9e3i-C6pM-2oiFENR9tw"
-          SUPABASE_SERVICE_ROLE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN3Y3NvanpldWlyemJzYmtpbnJwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4Njg3NzgwMywiZXhwIjoyMTAyNDUzODAzfQ.iQCp_UMMsJO1AHDJ1LdLmEbY-U0-IxE4WhE_VEKf5HI"
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://cwcsojzeuirzbsbkinrp.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN3Y3NvanpldWlyemJzYmtpbnJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4Nzc4MDMsImV4cCI6MjEwMjQ1MzgwM30.jxs4hX6XOv2QIPOvgax2oaq9e3i-C6pM-2oiFENR9tw' }}
         run: |
           npm run build
           touch ./out/.nojekyll
