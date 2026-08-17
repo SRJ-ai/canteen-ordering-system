@@ -188,7 +188,7 @@ export function AdminOrdersClient({ initialOrders = [] }: { initialOrders?: Admi
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
             Live Order Management
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-slate-700 font-semibold mt-1">
             Monitor real-time tickets, adjust statuses, and execute authoritative order cancellations.
           </p>
         </div>

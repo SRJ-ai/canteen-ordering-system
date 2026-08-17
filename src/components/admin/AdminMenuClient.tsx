@@ -235,7 +235,7 @@ export function AdminMenuClient({
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
             <UtensilsCrossed className="h-8 w-8 text-primary" /> Menu & Price Settings
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-slate-700 font-semibold mt-1">
             Add new food items, update dish prices in INR (₹), toggle stock availability, and manage categories.
           </p>
         </div>

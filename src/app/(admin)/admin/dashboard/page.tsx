@@ -67,7 +67,7 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
             Canteen Operations Dashboard
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-slate-700 font-semibold mt-1">
             Real-time sales, order throughput, kitchen load, and table metrics.
           </p>
         </div>

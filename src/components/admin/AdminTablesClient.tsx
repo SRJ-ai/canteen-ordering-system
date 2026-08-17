@@ -202,7 +202,7 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
             <QrCode className="h-8 w-8 text-primary" /> GPREC Table &amp; QR Manager
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-slate-700 font-semibold mt-1">
             Physical table mapping, crypto-secure QR tokens, and printable tent cards ({tables.length} Total Tables).
           </p>
         </div>
