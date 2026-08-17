@@ -51,36 +51,38 @@ export function RoleGuard({ children, allowedRoles, portalName = 'Restricted Por
 
         {/* Quick Demo Sign In Options */}
         {isStaffPortal && (
-          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-left space-y-2.5">
-            <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+          <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200 text-left space-y-2.5">
+            <span className="text-[11px] font-extrabold text-slate-800 uppercase tracking-wider block">
               ⚡ One-Click GPREC Demo Logins:
             </span>
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-1 gap-2.5">
               {allowedRoles.includes('ADMIN') && (
-                <Button
-                  size="sm"
-                  variant="outline"
+                <button
+                  type="button"
                   onClick={() => quickLogin('ADMIN')}
-                  className="w-full justify-between text-xs font-bold rounded-xl bg-white hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200"
+                  className="w-full flex items-center justify-between p-3 rounded-xl bg-white hover:bg-emerald-50 border-2 border-emerald-300 text-slate-900 shadow-xs transition-all text-left group"
                 >
-                  <span className="flex items-center gap-1.5">
-                    <UserCheck className="h-3.5 w-3.5 text-emerald-600" /> Log in as GPREC Admin
+                  <span className="flex items-center gap-2 text-xs font-extrabold text-emerald-950">
+                    <UserCheck className="h-4 w-4 text-emerald-600 shrink-0" /> Log in as GPREC Admin
                   </span>
-                  <span className="font-mono text-[10px] text-muted-foreground">admin@gprec.ac.in</span>
-                </Button>
+                  <span className="font-mono text-[10px] font-bold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-md border border-emerald-200">
+                    admin@gprec.ac.in
+                  </span>
+                </button>
               )}
               {allowedRoles.includes('KITCHEN_STAFF') && (
-                <Button
-                  size="sm"
-                  variant="outline"
+                <button
+                  type="button"
                   onClick={() => quickLogin('KITCHEN')}
-                  className="w-full justify-between text-xs font-bold rounded-xl bg-white hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200"
+                  className="w-full flex items-center justify-between p-3 rounded-xl bg-white hover:bg-amber-50 border-2 border-amber-300 text-slate-900 shadow-xs transition-all text-left group"
                 >
-                  <span className="flex items-center gap-1.5">
-                    <UserCheck className="h-3.5 w-3.5 text-amber-600" /> Log in as Kitchen Chef
+                  <span className="flex items-center gap-2 text-xs font-extrabold text-amber-950">
+                    <UserCheck className="h-4 w-4 text-amber-600 shrink-0" /> Log in as Kitchen Chef
                   </span>
-                  <span className="font-mono text-[10px] text-muted-foreground">kitchen@gprec.ac.in</span>
-                </Button>
+                  <span className="font-mono text-[10px] font-bold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-md border border-amber-200">
+                    kitchen@gprec.ac.in
+                  </span>
+                </button>
               )}
             </div>
           </div>
