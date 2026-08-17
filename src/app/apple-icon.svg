@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="gprecGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ea580c"/>
+      <stop offset="50%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Base Rounded Squircle -->
+  <rect width="100" height="100" rx="26" fill="url(#gprecGradient)"/>
+
+  <!-- Subtle Inner Border Highlight -->
+  <rect x="2" y="2" width="96" height="96" rx="24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-opacity="0.35"/>
+
+  <!-- Hot Steam Wave 1 -->
+  <path d="M40 23 Q36 29 40 35" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+  <!-- Hot Steam Wave 2 -->
+  <path d="M50 19 Q46 27 50 35" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" opacity="0.95"/>
+  <!-- Hot Steam Wave 3 -->
+  <path d="M60 23 Q56 29 60 35" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+
+  <!-- Cloche / Hot Food Cover Base Dome -->
+  <path d="M22 62 C22 45 35 41 50 41 C65 41 78 45 78 62 Z" fill="#ffffff" filter="url(#shadow)"/>
+  
+  <!-- Cloche Handle / Knob -->
+  <circle cx="50" cy="38" r="4.5" fill="#ffffff"/>
+  
+  <!-- Serving Platter Plate Rim -->
+  <rect x="18" y="64" width="64" height="6" rx="3" fill="#ffffff"/>
+  
+  <!-- GPREC Lettermark Accent in Center -->
+  <circle cx="50" cy="53" r="5" fill="#ea580c"/>
+  <circle cx="42" cy="55" r="2.5" fill="#f97316"/>
+  <circle cx="58" cy="55" r="2.5" fill="#f97316"/>
+</svg>

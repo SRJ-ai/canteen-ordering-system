@@ -1,0 +1,18 @@
+{
+  "name": "GPREC Campus Food Court",
+  "short_name": "GPREC Canteen",
+  "description": "Digital Canteen & QR Table Dine-In Ordering for G. Pulla Reddy Engineering College",
+  "start_url": "/canteen-ordering-system/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#f97316",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/canteen-ordering-system/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
