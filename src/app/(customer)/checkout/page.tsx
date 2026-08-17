@@ -109,6 +109,15 @@ export default function CheckoutPage() {
     setIsPaymentModalOpen(false);
 
     if (res.success && res.orderId) {
+      // Record order ownership for client privacy isolation
+      try {
+        const existingOrders = JSON.parse(localStorage.getItem('canteen_my_orders') || '[]');
+        if (!existingOrders.includes(res.orderId)) {
+          existingOrders.unshift(res.orderId);
+          localStorage.setItem('canteen_my_orders', JSON.stringify(existingOrders.slice(0, 50)));
+        }
+      } catch (e) {}
+
       clearCart();
       router.push(`/orders/?id=${res.orderId}`);
     } else {

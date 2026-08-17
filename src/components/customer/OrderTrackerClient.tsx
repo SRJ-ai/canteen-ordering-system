@@ -27,7 +27,9 @@ import {
   Star,
   MessageSquare,
   ThumbsUp,
+  Lock,
 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const ORDER_STEPS = [
   { status: 'PENDING', label: 'Order Placed', icon: Clock, desc: 'Sent to kitchen terminal' },
@@ -41,6 +43,7 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, role } = useAuth();
 
   // Resolve orderId from params, searchParams (?id=...), or window.location
   let resolvedId = (params?.id as string) || searchParams?.get('id') || searchParams?.get('order_id') || initialOrderId;
@@ -140,17 +143,78 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
 
   if (!order) {
     return (
-      <div className="max-w-md mx-auto py-16 text-center space-y-4">
+      <div className="max-w-md mx-auto py-16 text-center space-y-4 font-sans">
         <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto" />
         <h2 className="text-xl font-bold text-slate-900">Order Not Found</h2>
         <p className="text-xs text-muted-foreground">
           We couldn&apos;t find an active order with reference ID: {orderId}
         </p>
         <Link href="/menu">
-          <Button className="bg-primary hover:bg-primary/90 text-white rounded-2xl">
+          <Button className="bg-primary hover:bg-primary/90 text-white rounded-2xl font-bold">
             Return to Menu
           </Button>
         </Link>
+      </div>
+    );
+  }
+
+  // --- Strict User Privacy & Authorization Gate ---
+  const isAdminOrStaff =
+    role === 'ADMIN' ||
+    role === 'SUPER_ADMIN' ||
+    role === 'KITCHEN_STAFF' ||
+    role === 'CASHIER';
+
+  let isOwner = false;
+  if (isAdminOrStaff) {
+    isOwner = true; // Admin and Kitchen operations are completely undisturbed
+  } else {
+    // 1. Check user_id match
+    if (user?.id && order.user_id && order.user_id === user.id) {
+      isOwner = true;
+    }
+    // 2. Check local storage ownership
+    if (typeof window !== 'undefined') {
+      try {
+        const myOrders: string[] = JSON.parse(localStorage.getItem('canteen_my_orders') || '[]');
+        if (myOrders.includes(order.id)) {
+          isOwner = true;
+        }
+      } catch (e) {}
+
+      // 3. Check table session id match
+      try {
+        const tableInfo = JSON.parse(localStorage.getItem('canteen_table_info') || '{}');
+        if (tableInfo.sessionId && order.session_id === tableInfo.sessionId) {
+          isOwner = true;
+        }
+      } catch (e) {}
+    }
+  }
+
+  // If unauthorized visitor attempts to view another user's order
+  if (!isOwner) {
+    return (
+      <div className="max-w-md mx-auto py-16 text-center space-y-4 font-sans">
+        <div className="w-14 h-14 rounded-full bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto shadow-sm">
+          <Lock className="h-7 w-7" />
+        </div>
+        <h2 className="text-xl font-bold text-slate-900">Order Privacy Protected</h2>
+        <p className="text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto">
+          This order belongs to another student or faculty member. In accordance with campus privacy policies, one&apos;s meal details, contact notes, and billing records are strictly restricted to the order owner and authorized canteen administrators.
+        </p>
+        <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Link href="/menu">
+            <Button className="bg-primary hover:bg-primary/90 text-white rounded-2xl text-xs font-bold px-5">
+              Return to My Menu
+            </Button>
+          </Link>
+          <Link href="/auth/login">
+            <Button variant="outline" className="rounded-2xl text-xs font-semibold">
+              Sign In with Account
+            </Button>
+          </Link>
+        </div>
       </div>
     );
   }

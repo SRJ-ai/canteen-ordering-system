@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,6 +16,7 @@ import {
   CheckCircle2,
   Utensils,
   X,
+  Lock,
 } from 'lucide-react';
 
 interface ActiveOrderSummary {
@@ -27,23 +29,50 @@ interface ActiveOrderSummary {
 
 export function ActiveOrderFloatTracker() {
   const pathname = usePathname();
+  const { user, role } = useAuth();
   const [activeOrder, setActiveOrder] = useState<ActiveOrderSummary | null>(null);
   const [isDismissed, setIsDismissed] = useState(false);
 
-  // Check Supabase for recent orders created in this browser session
+  // Check Supabase strictly for orders owned by THIS specific user/session
   useEffect(() => {
-    async function checkActiveOrders() {
+    async function checkMyActiveOrders() {
       try {
         const supabase = createClient();
-        const { data, error } = await supabase
+
+        // 1. Collect user's owned order IDs from localStorage
+        let myOrderIds: string[] = [];
+        try {
+          const stored = localStorage.getItem('canteen_my_orders');
+          if (stored) {
+            myOrderIds = JSON.parse(stored);
+          }
+        } catch (e) {}
+
+        // If no authenticated user AND no local order history, do NOT query other people's orders
+        if (!user?.id && myOrderIds.length === 0) {
+          setActiveOrder(null);
+          return;
+        }
+
+        let query = supabase
           .from('orders')
-          .select('id, order_number, status, total_amount, created_at')
+          .select('id, order_number, status, total_amount, created_at, user_id')
           .in('status', ['PENDING', 'CONFIRMED', 'ACCEPTED', 'PREPARING', 'READY'])
-          .order('created_at', { ascending: false })
-          .limit(1);
+          .order('created_at', { ascending: false });
+
+        // Privacy Filter: Filter strictly by authenticated user ID or local order IDs
+        if (user?.id && myOrderIds.length > 0) {
+          query = query.or(`user_id.eq.${user.id},id.in.(${myOrderIds.join(',')})`);
+        } else if (user?.id) {
+          query = query.eq('user_id', user.id);
+        } else if (myOrderIds.length > 0) {
+          query = query.in('id', myOrderIds);
+        }
+
+        const { data, error } = await query.limit(1);
 
         if (!error && data && data.length > 0) {
-          // If created within last 2 hours
+          // If created within last 3 hours
           const orderAgeHours = (Date.now() - new Date(data[0].created_at).getTime()) / (1000 * 60 * 60);
           if (orderAgeHours < 3) {
             setActiveOrder(data[0]);
@@ -53,13 +82,15 @@ export function ActiveOrderFloatTracker() {
         } else {
           setActiveOrder(null);
         }
-      } catch (e) {}
+      } catch (e) {
+        setActiveOrder(null);
+      }
     }
 
-    checkActiveOrders();
-    const interval = setInterval(checkActiveOrders, 5000);
+    checkMyActiveOrders();
+    const interval = setInterval(checkMyActiveOrders, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [user]);
 
   // Hide on order tracker page itself or admin/kitchen pages
   if (
@@ -78,7 +109,7 @@ export function ActiveOrderFloatTracker() {
 
   return (
     <aside
-      aria-label="Active order status"
+      aria-label="Your active order status"
       className="fixed bottom-18 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-lg font-sans print:hidden animate-in slide-in-from-bottom-5 duration-300"
     >
       <div className={`p-3.5 sm:p-4 rounded-3xl shadow-2xl border backdrop-blur-xl transition-all ${

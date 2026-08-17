@@ -3,11 +3,12 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { History, ArrowRight, Clock, Utensils, MapPin, ReceiptText, Loader2 } from 'lucide-react';
+import { History, ArrowRight, Clock, Utensils, MapPin, ReceiptText, Loader2, Lock } from 'lucide-react';
 import { OrderTrackerClient } from '@/components/customer/OrderTrackerClient';
 
 function OrdersPageContent() {
@@ -24,26 +25,46 @@ function OrdersPageContent() {
 
 export default function CustomerOrdersPage() {
   return (
-    <Suspense fallback={
-      <div className="max-w-md mx-auto py-24 text-center space-y-3">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-        <p className="text-xs text-muted-foreground font-semibold">Loading orders...</p>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="max-w-md mx-auto py-24 text-center space-y-3">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+          <p className="text-xs text-muted-foreground font-semibold">Loading orders...</p>
+        </div>
+      }
+    >
       <OrdersPageContent />
     </Suspense>
   );
 }
 
 function CustomerOrdersList() {
+  const { user, role } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadOrders() {
+    async function loadMyOrders() {
       try {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+
+        // 1. Gather local order IDs placed in this browser
+        let myOrderIds: string[] = [];
+        try {
+          const stored = localStorage.getItem('canteen_my_orders');
+          if (stored) {
+            myOrderIds = JSON.parse(stored);
+          }
+        } catch (e) {}
+
+        const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'KITCHEN_STAFF' || role === 'CASHIER';
+
+        // Strict Privacy Rule: If not admin, and no logged in user AND no local order history, show 0 orders (do not leak others)
+        if (!isAdmin && !user?.id && myOrderIds.length === 0) {
+          setOrders([]);
+          setLoading(false);
+          return;
+        }
 
         let query = supabase
           .from('orders')
@@ -53,6 +74,7 @@ function CustomerOrdersList() {
             status,
             total_amount,
             created_at,
+            user_id,
             table_sessions (
               tables (
                 table_number
@@ -66,10 +88,17 @@ function CustomerOrdersList() {
             )
           `)
           .order('created_at', { ascending: false })
-          .limit(20);
+          .limit(30);
 
-        if (user) {
-          query = query.eq('user_id', user.id);
+        // If not admin, strictly isolate by user ownership
+        if (!isAdmin) {
+          if (user?.id && myOrderIds.length > 0) {
+            query = query.or(`user_id.eq.${user.id},id.in.(${myOrderIds.join(',')})`);
+          } else if (user?.id) {
+            query = query.eq('user_id', user.id);
+          } else if (myOrderIds.length > 0) {
+            query = query.in('id', myOrderIds);
+          }
         }
 
         const { data } = await query;
@@ -81,8 +110,8 @@ function CustomerOrdersList() {
       }
     }
 
-    loadOrders();
-  }, []);
+    loadMyOrders();
+  }, [user, role]);
 
   if (loading) {
     return (
@@ -94,14 +123,14 @@ function CustomerOrdersList() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6 font-sans">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <History className="h-7 w-7 text-primary" /> Order History
+            <History className="h-7 w-7 text-primary" /> My Order History
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
-            Track your ongoing meals and view past receipts.
+            Track your ongoing meals and view personal receipts.
           </p>
         </div>
         <Link href="/menu">
@@ -118,7 +147,7 @@ function CustomerOrdersList() {
           </div>
           <h3 className="font-bold text-lg text-slate-800">No previous orders found</h3>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-            You haven&apos;t placed any orders yet. Scan your table QR code or order online now!
+            You haven&apos;t placed any orders yet on this device. Scan your table QR code or order online now!
           </p>
           <Link href="/menu">
             <Button className="mt-2 bg-primary hover:bg-primary/90 text-white rounded-2xl font-bold">
