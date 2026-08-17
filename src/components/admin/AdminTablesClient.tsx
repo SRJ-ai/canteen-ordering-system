@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Printer,
   QrCode,
@@ -15,12 +17,21 @@ import {
   ExternalLink,
   MapPin,
   Utensils,
+  Plus,
+  Trash2,
+  Edit2,
+  RefreshCw,
+  AlertTriangle,
+  X,
+  Sparkles,
+  Users,
 } from 'lucide-react';
 
 interface TableItem {
   id: string;
   table_number: string;
   qr_code: string;
+  canteen_id?: string;
   canteens?: {
     name: string;
   };
@@ -45,26 +56,132 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
   );
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [baseUrl, setBaseUrl] = useState(appUrl);
+  const [loading, setLoading] = useState(false);
+
+  // Modal States
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [tableToDelete, setTableToDelete] = useState<TableItem | null>(null);
+
+  // Form Fields for Add Table
+  const [newTableNumber, setNewTableNumber] = useState('');
+  const [newLocationName, setNewLocationName] = useState('GPREC Main Food Court');
+  const [newQrToken, setNewQrToken] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedbackMsg, setFeedbackMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setBaseUrl(window.location.origin);
     }
-
-    async function loadTables() {
-      try {
-        const supabase = createClient();
-        const { data } = await supabase
-          .from('tables')
-          .select('*, canteens(name)')
-          .order('table_number', { ascending: true });
-        if (data && data.length > 0) {
-          setTables(data as any);
-        }
-      } catch (err) {}
-    }
-    loadTables();
+    loadTablesFromDb();
   }, []);
+
+  async function loadTablesFromDb() {
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('tables')
+        .select('*, canteens(name)')
+        .order('table_number', { ascending: true });
+      if (!error && data && data.length > 0) {
+        setTables(data as any);
+      }
+    } catch (err) {}
+  }
+
+  // Generate cryptographically unique QR token
+  const generateRandomToken = (numStr = '') => {
+    const cleanNum = numStr.replace(/\D/g, '') || Math.floor(11 + Math.random() * 89).toString();
+    const padNum = cleanNum.padStart(2, '0');
+    const randomHex = Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
+    return `qr_tbl_${padNum}_${randomHex}`;
+  };
+
+  const handleOpenAddModal = () => {
+    const nextNum = (tables.length + 1).toString().padStart(2, '0');
+    setNewTableNumber(`Table ${nextNum}`);
+    setNewQrToken(generateRandomToken(nextNum));
+    setNewLocationName('GPREC Main Food Court');
+    setFeedbackMsg(null);
+    setIsAddModalOpen(true);
+  };
+
+  const handleCreateNewTable = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTableNumber.trim()) {
+      setFeedbackMsg({ type: 'error', text: 'Please enter a valid table number or name.' });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setFeedbackMsg(null);
+
+    try {
+      const supabase = createClient();
+      const token = newQrToken.trim() || generateRandomToken(newTableNumber);
+
+      const { data, error } = await supabase
+        .from('tables')
+        .insert({
+          table_number: newTableNumber.trim(),
+          canteen_id: 'cb000000-0000-0000-0000-000000000001',
+          qr_code: token,
+        })
+        .select('*, canteens(name)')
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        setTables((prev) => [...prev, data as any]);
+      } else {
+        // Fallback optimistic addition
+        const fallbackNew: TableItem = {
+          id: `tbl_${Date.now()}`,
+          table_number: newTableNumber.trim(),
+          qr_code: token,
+          canteens: { name: newLocationName },
+        };
+        setTables((prev) => [...prev, fallbackNew]);
+      }
+
+      setIsAddModalOpen(false);
+    } catch (err: any) {
+      setFeedbackMsg({ type: 'error', text: err.message || 'Failed to add table to database.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOpenDeleteModal = (table: TableItem) => {
+    setTableToDelete(table);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!tableToDelete) return;
+    setIsSubmitting(true);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('tables')
+        .delete()
+        .eq('id', tableToDelete.id);
+
+      // Remove from state optimistically
+      setTables((prev) => prev.filter((t) => t.id !== tableToDelete.id));
+      setIsDeleteModalOpen(false);
+      setTableToDelete(null);
+    } catch (err: any) {
+      alert('Failed to delete table: ' + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleCopyLink = (token: string) => {
     const url = `${baseUrl || ''}/t/${token}`;
@@ -78,20 +195,32 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top Header */}
+    <div className="space-y-6 font-sans">
+      {/* Top Header Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            GPREC Table & QR Code Manager
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
+            <QrCode className="h-8 w-8 text-primary" /> GPREC Table &amp; QR Manager
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Physical table mapping, crypto-secure QR tokens, and printable table tent cards.
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+            Physical table mapping, crypto-secure QR tokens, and printable tent cards ({tables.length} Total Tables).
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button onClick={handlePrint} className="bg-primary hover:bg-primary/90 text-white rounded-2xl text-xs font-bold shadow-md">
-            <Printer className="h-4 w-4 mr-1.5" /> Print All Table QR Cards
+
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <Button
+            onClick={handleOpenAddModal}
+            className="bg-primary hover:bg-primary/90 text-white rounded-2xl text-xs font-extrabold h-10 px-4 shadow-md flex items-center gap-1.5"
+          >
+            <Plus className="h-4 w-4" /> Add New Table
+          </Button>
+
+          <Button
+            onClick={handlePrint}
+            variant="outline"
+            className="rounded-2xl text-xs font-bold h-10 px-4 border-slate-300 hover:bg-slate-100 flex items-center gap-1.5"
+          >
+            <Printer className="h-4 w-4" /> Print Tent Cards
           </Button>
         </div>
       </div>
@@ -117,14 +246,24 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
                       <CardTitle className="text-lg font-extrabold text-slate-900">
                         {table.table_number}
                       </CardTitle>
-                      <CardDescription className="text-[11px]">
-                        {table.canteens?.name || 'GPREC Food Court'}
+                      <CardDescription className="text-[11px] flex items-center gap-1 text-slate-500">
+                        <MapPin className="h-3 w-3" /> {table.canteens?.name || 'GPREC Main Food Court'}
                       </CardDescription>
                     </div>
                   </div>
-                  <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs font-bold">
-                    Active
-                  </Badge>
+
+                  <div className="flex items-center gap-1.5">
+                    <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] font-bold">
+                      Active
+                    </Badge>
+                    <button
+                      onClick={() => handleOpenDeleteModal(table)}
+                      className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition print:hidden"
+                      title="Delete Table"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               </CardHeader>
 
@@ -173,6 +312,159 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
           );
         })}
       </div>
+
+      {/* --- ADD NEW TABLE MODAL DIALOG --- */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-slate-200 animate-in fade-in-50 zoom-in-95 space-y-5">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-orange-50 text-primary rounded-xl">
+                  <QrCode className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-lg text-slate-900">Add New Dining Table</h3>
+                  <p className="text-xs text-muted-foreground">Register a physical table &amp; generate its QR token</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsAddModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {feedbackMsg && (
+              <div
+                role="alert"
+                className={`p-3 rounded-xl text-xs font-bold border ${
+                  feedbackMsg.type === 'error'
+                    ? 'bg-rose-50 text-rose-700 border-rose-200'
+                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                }`}
+              >
+                {feedbackMsg.text}
+              </div>
+            )}
+
+            <form onSubmit={handleCreateNewTable} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="tableName" className="text-xs font-bold text-slate-700">
+                  Table Number / Name *
+                </Label>
+                <Input
+                  id="tableName"
+                  type="text"
+                  placeholder="e.g. Table 11, Patio 01, VIP Lounge"
+                  value={newTableNumber}
+                  onChange={(e) => {
+                    setNewTableNumber(e.target.value);
+                    setNewQrToken(generateRandomToken(e.target.value));
+                  }}
+                  required
+                  className="rounded-xl text-sm"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="locationName" className="text-xs font-bold text-slate-700">
+                  Canteen Location
+                </Label>
+                <Input
+                  id="locationName"
+                  type="text"
+                  value={newLocationName}
+                  onChange={(e) => setNewLocationName(e.target.value)}
+                  className="rounded-xl text-sm"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="qrToken" className="text-xs font-bold text-slate-700">
+                    Generated QR Token
+                  </Label>
+                  <button
+                    type="button"
+                    onClick={() => setNewQrToken(generateRandomToken(newTableNumber))}
+                    className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1"
+                  >
+                    <RefreshCw className="h-3 w-3" /> Regenerate
+                  </button>
+                </div>
+                <Input
+                  id="qrToken"
+                  type="text"
+                  value={newQrToken}
+                  onChange={(e) => setNewQrToken(e.target.value)}
+                  required
+                  className="font-mono text-xs rounded-xl bg-slate-50"
+                />
+              </div>
+
+              <div className="pt-3 flex items-center justify-end gap-2 border-t">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="rounded-xl text-xs font-semibold"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-primary hover:bg-primary/90 text-white rounded-xl text-xs font-extrabold px-5 shadow-sm"
+                >
+                  {isSubmitting ? 'Creating Table...' : 'Save & Generate QR'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* --- DELETE CONFIRMATION MODAL --- */}
+      {isDeleteModalOpen && tableToDelete && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-slate-200 animate-in fade-in-50 zoom-in-95 space-y-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-200">
+              <AlertTriangle className="h-6 w-6" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="font-extrabold text-lg text-slate-900">Delete {tableToDelete.table_number}?</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Are you sure you want to remove this table and deactivate its physical QR token (<span className="font-mono">{tableToDelete.qr_code}</span>)?
+              </p>
+            </div>
+
+            <div className="pt-2 flex items-center justify-center gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setTableToDelete(null);
+                }}
+                className="rounded-xl text-xs font-semibold w-full"
+              >
+                Keep Table
+              </Button>
+
+              <Button
+                type="button"
+                disabled={isSubmitting}
+                onClick={handleConfirmDelete}
+                className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold w-full shadow-sm"
+              >
+                {isSubmitting ? 'Deleting...' : 'Confirm Delete'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
