@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,8 @@ import {
   Flame,
   Check,
   Timer,
+  GraduationCap,
+  Zap,
 } from 'lucide-react';
 
 interface KitchenOrder {
@@ -59,6 +61,18 @@ export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) 
   const [orders, setOrders] = useState<KitchenOrder[]>(initialOrders);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(false);
+  const seenOrderIds = useRef<Set<string>>(new Set(initialOrders.map((o) => o.id)));
+
+  // Helper to check if an order has faculty priority
+  const isFacultyOrder = (order: KitchenOrder) => {
+    return order.order_notes?.some(
+      (n) =>
+        n.note?.includes('[FACULTY_PRIORITY]') ||
+        n.note?.toLowerCase().includes('faculty') ||
+        n.note?.toLowerCase().includes('staff') ||
+        n.note?.toLowerCase().includes('prof')
+    ) || false;
+  };
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -97,12 +111,28 @@ export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) 
         .order('created_at', { ascending: true });
 
       if (data) {
+        // Detect new orders and trigger sound alert
+        data.forEach((o: any) => {
+          if (!seenOrderIds.current.has(o.id)) {
+            seenOrderIds.current.add(o.id);
+            if (soundEnabled && typeof window !== 'undefined') {
+              playChime();
+              if (isFacultyOrder(o) && 'speechSynthesis' in window) {
+                try {
+                  const speech = new SpeechSynthesisUtterance('VIP Faculty priority order received!');
+                  window.speechSynthesis.speak(speech);
+                } catch (e) {}
+              }
+            }
+          }
+        });
+
         setOrders(data as any);
       }
     } catch (err) {
       console.error('Error fetching KDS orders:', err);
     }
-  }, []);
+  }, [soundEnabled]);
 
   useEffect(() => {
     fetchOrders();
@@ -162,22 +192,27 @@ export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) 
     }
   };
 
-  // Strictly sort by FCFS (created_at ASC)
-  const sortByFcfs = (a: KitchenOrder, b: KitchenOrder) =>
-    new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+  // Queue sorting: Faculty Priority first, then FCFS (created_at ASC)
+  const sortKdsQueue = (a: KitchenOrder, b: KitchenOrder) => {
+    const aFac = isFacultyOrder(a);
+    const bFac = isFacultyOrder(b);
+    if (aFac && !bFac) return -1;
+    if (!aFac && bFac) return 1;
+    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+  };
 
   // Filter into 3 active kitchen columns
   const pendingOrders = orders
     .filter((o) => o.status === 'PENDING' || o.status === 'CONFIRMED')
-    .sort(sortByFcfs);
+    .sort(sortKdsQueue);
 
   const preparingOrders = orders
     .filter((o) => o.status === 'ACCEPTED' || o.status === 'PREPARING')
-    .sort(sortByFcfs);
+    .sort(sortKdsQueue);
 
   const readyOrders = orders
     .filter((o) => o.status === 'READY')
-    .sort(sortByFcfs);
+    .sort(sortKdsQueue);
 
   const getTimeElapsedMinutes = (createdAt: string) => {
     return Math.max(0, Math.floor((Date.now() - new Date(createdAt).getTime()) / 60000));
@@ -202,11 +237,11 @@ export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) 
             <h2 className="font-extrabold text-lg text-white tracking-tight flex items-center gap-2">
               GPREC Kitchen Display (KDS)
               <span className="bg-emerald-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full">
-                FCFS LIVE
+                PRIORITY QUEUE LIVE
               </span>
             </h2>
             <p className="text-xs text-slate-400">
-              {pendingOrders.length + preparingOrders.length + readyOrders.length} Active Orders &bull; Strict First-Come First-Serve Queue
+              {pendingOrders.length + preparingOrders.length + readyOrders.length} Active Orders &bull; Faculty Fast-Track &amp; FCFS Tiering
             </p>
           </div>
         </div>
@@ -243,14 +278,14 @@ export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) 
         <div className="space-y-4">
           <div className="flex items-center justify-between bg-amber-500/15 border border-amber-500/30 p-3.5 rounded-2xl">
             <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
-              <Clock className="h-4 w-4" /> 1. New Incoming (FCFS)
+              <Clock className="h-4 w-4" /> 1. New Incoming
             </div>
             <Badge className="bg-amber-500 text-slate-900 font-extrabold px-2.5">
               {pendingOrders.length}
             </Badge>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4" role="list" aria-label="Incoming Orders">
             {pendingOrders.length === 0 ? (
               <div className="p-8 text-center bg-slate-900/50 rounded-2xl border border-dashed border-slate-800 text-slate-500 text-xs">
                 No incoming tickets
@@ -260,6 +295,7 @@ export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) 
                 <KitchenTicketCard
                   key={order.id}
                   order={order}
+                  isFaculty={isFacultyOrder(order)}
                   isFirstInQueue={idx === 0}
                   queuePosition={idx + 1}
                   accentColor="amber"
@@ -285,7 +321,7 @@ export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) 
             </Badge>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4" role="list" aria-label="Cooking Orders">
             {preparingOrders.length === 0 ? (
               <div className="p-8 text-center bg-slate-900/50 rounded-2xl border border-dashed border-slate-800 text-slate-500 text-xs">
                 No orders being prepared
@@ -295,6 +331,7 @@ export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) 
                 <KitchenTicketCard
                   key={order.id}
                   order={order}
+                  isFaculty={isFacultyOrder(order)}
                   isFirstInQueue={idx === 0}
                   queuePosition={idx + 1}
                   accentColor="blue"
@@ -322,7 +359,7 @@ export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) 
             </Badge>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4" role="list" aria-label="Ready Orders">
             {readyOrders.length === 0 ? (
               <div className="p-8 text-center bg-slate-900/50 rounded-2xl border border-dashed border-slate-800 text-slate-500 text-xs">
                 No tickets waiting for pickup
@@ -332,6 +369,7 @@ export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) 
                 <KitchenTicketCard
                   key={order.id}
                   order={order}
+                  isFaculty={isFacultyOrder(order)}
                   isFirstInQueue={idx === 0}
                   queuePosition={idx + 1}
                   accentColor="emerald"
@@ -352,6 +390,7 @@ export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) 
 
 function KitchenTicketCard({
   order,
+  isFaculty,
   isFirstInQueue,
   queuePosition,
   accentColor,
@@ -362,6 +401,7 @@ function KitchenTicketCard({
   isUpdating,
 }: {
   order: KitchenOrder;
+  isFaculty: boolean;
   isFirstInQueue: boolean;
   queuePosition: number;
   accentColor: 'amber' | 'blue' | 'emerald';
@@ -376,26 +416,40 @@ function KitchenTicketCard({
 
   return (
     <Card
+      role="listitem"
+      aria-label={`Order ${order.order_number || order.id} for ${tableNum}`}
       className={`bg-slate-900 text-white rounded-3xl shadow-xl overflow-hidden flex flex-col justify-between transition-all border ${
-        isFirstInQueue
+        isFaculty
+          ? 'border-amber-400 ring-2 ring-amber-400/50 shadow-amber-500/10'
+          : isFirstInQueue
           ? 'border-amber-400 ring-2 ring-amber-400/30'
           : isUrgent
           ? 'border-rose-500/80 ring-1 ring-rose-500/40'
           : 'border-slate-800'
       }`}
     >
-      <CardHeader className="p-4 pb-2 border-b border-slate-800 bg-slate-950/60">
+      <CardHeader className={`p-4 pb-2 border-b ${
+        isFaculty ? 'bg-amber-950/40 border-amber-500/30' : 'border-slate-800 bg-slate-950/60'
+      }`}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <Badge className="bg-slate-800 text-amber-400 border border-amber-500/30 font-mono text-xs px-2 py-0.5 font-bold">
               {order.order_number || `CAN-${order.id.slice(0, 4)}`}
             </Badge>
-            {isFirstInQueue && (
+
+            {isFaculty && (
+              <Badge className="bg-amber-500 text-slate-950 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                <GraduationCap className="h-3 w-3" /> VIP FACULTY
+              </Badge>
+            )}
+
+            {!isFaculty && isFirstInQueue && (
               <Badge className="bg-amber-500 text-slate-950 text-[10px] font-black uppercase tracking-wider">
                 #1 Next (FCFS)
               </Badge>
             )}
-            {!isFirstInQueue && (
+
+            {!isFaculty && !isFirstInQueue && (
               <span className="text-[10px] text-slate-500 font-mono">
                 #{queuePosition} in line
               </span>
@@ -450,7 +504,11 @@ function KitchenTicketCard({
 
         {/* Order Notes */}
         {order.order_notes && order.order_notes.length > 0 && (
-          <div className="mt-2 text-xs bg-amber-950/40 border border-amber-700/50 text-amber-200 p-2 rounded-xl font-medium">
+          <div className={`mt-2 text-xs p-2.5 rounded-xl font-medium ${
+            isFaculty
+              ? 'bg-amber-950/70 border border-amber-500/50 text-amber-200'
+              : 'bg-slate-800 border border-slate-700 text-slate-300'
+          }`}>
             📝 {order.order_notes[0].note}
           </div>
         )}

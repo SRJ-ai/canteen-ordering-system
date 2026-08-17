@@ -7,6 +7,9 @@ export async function placeOrderAction(data: {
   paymentMethod: string;
   customerName?: string;
   customerPhone?: string;
+  isFacultyPriority?: boolean;
+  department?: string;
+  notes?: string;
 }) {
   try {
     const supabase = createClient();
@@ -31,6 +34,9 @@ export async function placeOrderAction(data: {
       paymentMethod: data.paymentMethod,
       customerName: data.customerName,
       customerPhone: data.customerPhone,
+      isFacultyPriority: data.isFacultyPriority,
+      department: data.department,
+      notes: data.notes,
     });
 
     return { success: true, orderId: order.id, orderNumber: order.order_number };

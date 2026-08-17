@@ -34,6 +34,9 @@ export interface CreateOrderParams {
   paymentMethod?: string;
   customerName?: string;
   customerPhone?: string;
+  isFacultyPriority?: boolean;
+  department?: string;
+  notes?: string;
 }
 
 export class OrderService {
@@ -54,6 +57,9 @@ export class OrderService {
     paymentMethod = 'UPI',
     customerName = '',
     customerPhone = '',
+    isFacultyPriority = false,
+    department = '',
+    notes = '',
   }: CreateOrderParams) {
     const adminSupabase = getClient();
 
@@ -227,14 +233,15 @@ export class OrderService {
       status: paymentMethod === 'CASH' ? 'PENDING' : 'PAID',
     });
 
-    // 9. If customer added note / contact
-    if (customerName || customerPhone) {
-      await adminSupabase.from('order_notes').insert({
-        order_id: order.id,
-        note: `Customer: ${customerName || 'Guest'} (${customerPhone || 'N/A'}) - Paid via ${paymentMethod}`,
-        created_by: validUserId,
-      });
-    }
+    // 9. If customer added note / contact or faculty priority
+    const notePrefix = isFacultyPriority ? `[FACULTY_PRIORITY] Prof./Staff: ${customerName || 'Faculty'} (Dept: ${department || 'General'})` : `Customer: ${customerName || 'Guest'} (${customerPhone || 'N/A'})`;
+    const fullNote = `${notePrefix} - Paid via ${paymentMethod}${notes ? ` | Notes: ${notes}` : ''}`;
+
+    await adminSupabase.from('order_notes').insert({
+      order_id: order.id,
+      note: fullNote,
+      created_by: validUserId,
+    });
 
     return order;
   }
