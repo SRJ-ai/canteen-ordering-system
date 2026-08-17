@@ -18,6 +18,8 @@ import {
   Clock,
   Zap,
   CheckCircle2,
+  Leaf,
+  Activity,
 } from 'lucide-react';
 import { ItemCustomizationModal, MenuItemWithAddons } from './ItemCustomizationModal';
 
@@ -29,12 +31,13 @@ interface MenuClientProps {
 export function MenuClient({ initialCategories, initialMenuItems }: MenuClientProps) {
   const { items: cartItems, addItem, updateQuantity } = useCart();
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [dietaryFilter, setDietaryFilter] = useState<'ALL' | 'VEG' | 'FAST' | 'TOP_RATED'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCustomizingItem, setActiveCustomizingItem] = useState<MenuItemWithAddons | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Filter items based on Category & Search Query
+  // Filter items based on Category, Search Query, and Dietary Filter
   const filteredItems = useMemo(() => {
     return initialMenuItems.filter((item) => {
       const matchesCategory =
@@ -42,14 +45,28 @@ export function MenuClient({ initialCategories, initialMenuItems }: MenuClientPr
       const matchesSearch =
         item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()));
-      return matchesCategory && matchesSearch;
+
+      let matchesDiet = true;
+      if (dietaryFilter === 'VEG') {
+        matchesDiet = !item.name.toLowerCase().includes('chicken') && !item.name.toLowerCase().includes('egg');
+      } else if (dietaryFilter === 'FAST') {
+        matchesDiet = Number(item.base_price) <= 60 || item.name.toLowerCase().includes('chai') || item.name.toLowerCase().includes('coffee') || item.name.toLowerCase().includes('samosa');
+      } else if (dietaryFilter === 'TOP_RATED') {
+        matchesDiet = item.name.toLowerCase().includes('dosa') || item.name.toLowerCase().includes('thali') || item.name.toLowerCase().includes('paneer') || item.name.toLowerCase().includes('biryani');
+      }
+
+      return matchesCategory && matchesSearch && matchesDiet;
     });
-  }, [initialMenuItems, selectedCategory, searchQuery]);
+  }, [initialMenuItems, selectedCategory, searchQuery, dietaryFilter]);
 
   // Featured Campus Best Sellers
   const bestSellers = useMemo(() => {
     return initialMenuItems.slice(0, 4);
   }, [initialMenuItems]);
+
+  // Calculate live campus crowd rush status
+  const currentHour = new Date().getHours();
+  const isLunchRush = currentHour >= 12 && currentHour <= 14;
 
   // Play subtle tactile pop audio when adding items
   const playPopSound = () => {
@@ -157,22 +174,26 @@ export function MenuClient({ initialCategories, initialMenuItems }: MenuClientPr
         <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
       </div>
 
-      {/* Live Kitchen Status Banner */}
-      <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+      {/* Live Campus Crowd Heatmap & Kitchen Status Banner */}
+      <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
           <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isLunchRush ? 'bg-amber-400' : 'bg-emerald-400'}`}></span>
+            <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${isLunchRush ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
           </span>
-          <span className="text-xs font-bold text-slate-800">
-            GPREC Kitchen: <span className="text-emerald-700 font-extrabold">Open &amp; Fast-Track Active</span>
-          </span>
+          <div className="text-xs font-bold text-slate-800">
+            Food Court Status:{' '}
+            <span className={`font-extrabold ${isLunchRush ? 'text-amber-700' : 'text-emerald-700'}`}>
+              {isLunchRush ? 'Peak Lunch Hours (Moderate Queue)' : 'Fast-Track Seating Open'}
+            </span>
+          </div>
         </div>
+
         <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
-          <span className="bg-amber-50 text-amber-800 border border-amber-200/60 px-2 py-0.5 rounded-lg font-bold text-[11px] flex items-center gap-1">
+          <span className="bg-orange-50 text-orange-800 border border-orange-200/60 px-2 py-0.5 rounded-lg font-bold text-[11px] flex items-center gap-1">
             <Clock className="h-3 w-3" /> Average Prep: ~5-8 mins
           </span>
-          <span>&bull; Made to Order</span>
+          <span>&bull; Strict FCFS Queue</span>
         </div>
       </div>
 
@@ -218,6 +239,50 @@ export function MenuClient({ initialCategories, initialMenuItems }: MenuClientPr
         </section>
       )}
 
+      {/* Smart Dietary Filter Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs">
+        <button
+          onClick={() => setDietaryFilter('ALL')}
+          className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+            dietaryFilter === 'ALL'
+              ? 'bg-slate-900 text-white shadow-xs'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }`}
+        >
+          All Items
+        </button>
+        <button
+          onClick={() => setDietaryFilter('VEG')}
+          className={`px-3 py-1.5 rounded-xl font-bold flex items-center gap-1 transition-all ${
+            dietaryFilter === 'VEG'
+              ? 'bg-emerald-600 text-white shadow-xs'
+              : 'bg-emerald-50 text-emerald-800 border border-emerald-200/60 hover:bg-emerald-100'
+          }`}
+        >
+          <Leaf className="h-3 w-3" /> Pure Veg
+        </button>
+        <button
+          onClick={() => setDietaryFilter('FAST')}
+          className={`px-3 py-1.5 rounded-xl font-bold flex items-center gap-1 transition-all ${
+            dietaryFilter === 'FAST'
+              ? 'bg-amber-600 text-white shadow-xs'
+              : 'bg-amber-50 text-amber-800 border border-amber-200/60 hover:bg-amber-100'
+          }`}
+        >
+          <Zap className="h-3 w-3" /> Quick Bites (&le; ₹60)
+        </button>
+        <button
+          onClick={() => setDietaryFilter('TOP_RATED')}
+          className={`px-3 py-1.5 rounded-xl font-bold flex items-center gap-1 transition-all ${
+            dietaryFilter === 'TOP_RATED'
+              ? 'bg-orange-600 text-white shadow-xs'
+              : 'bg-orange-50 text-orange-800 border border-orange-200/60 hover:bg-orange-100'
+          }`}
+        >
+          <Star className="h-3 w-3 fill-orange-400 text-orange-400" /> Chef&apos;s Specials
+        </button>
+      </div>
+
       {/* Category Pills Navigation */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         <button
@@ -228,7 +293,7 @@ export function MenuClient({ initialCategories, initialMenuItems }: MenuClientPr
               : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
           }`}
         >
-          All Items ({initialMenuItems.length})
+          All Categories ({initialMenuItems.length})
         </button>
         {initialCategories.map((cat) => {
           const isSelected = selectedCategory === cat.id;
@@ -260,10 +325,18 @@ export function MenuClient({ initialCategories, initialMenuItems }: MenuClientPr
           </div>
           <h3 className="font-bold text-lg text-slate-800">No dishes found</h3>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-            We couldn&apos;t find any items matching &ldquo;{searchQuery}&rdquo;. Try another search term or browse by category.
+            We couldn&apos;t find any items matching your selected filters. Try resetting the category or dietary preference.
           </p>
-          <Button variant="outline" size="sm" onClick={() => { setSearchQuery(''); setSelectedCategory('ALL'); }}>
-            Reset Filters
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setSearchQuery('');
+              setSelectedCategory('ALL');
+              setDietaryFilter('ALL');
+            }}
+          >
+            Reset All Filters
           </Button>
         </div>
       ) : (

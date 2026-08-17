@@ -77,17 +77,24 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
     if (res.success && res.order) {
       setOrder(res.order);
 
-      // Voice synthesis announcement when order is READY
-      if (res.order.status === 'READY' && !hasSpokenReady && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      // Voice synthesis announcement & mobile haptic vibration when order is READY
+      if (res.order.status === 'READY' && !hasSpokenReady) {
         setHasSpokenReady(true);
-        try {
-          const speech = new SpeechSynthesisUtterance(
-            `Attention! Order ${res.order.order_number || 'your meal'} is ready for pickup at the counter!`
-          );
-          speech.rate = 0.95;
-          speech.pitch = 1.05;
-          window.speechSynthesis.speak(speech);
-        } catch (e) {}
+        if (typeof navigator !== 'undefined' && (navigator as any).vibrate) {
+          try {
+            (navigator as any).vibrate([150, 80, 150, 80, 300]);
+          } catch (e) {}
+        }
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+          try {
+            const speech = new SpeechSynthesisUtterance(
+              `Attention! Order ${res.order.order_number || 'your meal'} is ready for pickup at the counter!`
+            );
+            speech.rate = 0.95;
+            speech.pitch = 1.05;
+            window.speechSynthesis.speak(speech);
+          } catch (e) {}
+        }
       }
     }
     setLoading(false);
@@ -348,6 +355,63 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {/* Live Prep Time & Countdown Gauge */}
+        {!isCancelled && !isCompleted && (
+          <div className="p-5 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/5 border-b border-slate-100 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              {/* Circular SVG Progress Ring */}
+              <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
+                <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
+                  <path
+                    className="text-slate-200"
+                    strokeWidth="3.5"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                  <path
+                    className={order.status === 'READY' ? 'text-emerald-500' : 'text-orange-500'}
+                    strokeDasharray={order.status === 'READY' ? '100, 100' : '65, 100'}
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                </svg>
+                <div className="absolute text-[11px] font-black text-slate-900">
+                  {order.status === 'READY' ? '✓' : '~5m'}
+                </div>
+              </div>
+
+              <div>
+                <span className="text-xs font-bold text-slate-900 block">
+                  {order.status === 'READY'
+                    ? 'Meal Ready at Counter!'
+                    : order.status === 'PREPARING'
+                    ? 'Chef is Sizzling Your Order'
+                    : 'Order Queued for Cooking'}
+                </span>
+                <span className="text-[11px] text-muted-foreground font-medium">
+                  {order.status === 'READY'
+                    ? 'Pickup with token number'
+                    : 'Target prep window: 5–8 mins'}
+                </span>
+              </div>
+            </div>
+
+            <Badge
+              className={`text-[10px] font-black border-0 px-2 py-0.5 ${
+                order.status === 'READY'
+                  ? 'bg-emerald-500 text-white animate-pulse'
+                  : 'bg-amber-500 text-slate-950'
+              }`}
+            >
+              {order.status === 'READY' ? 'READY' : 'IN KITCHEN'}
+            </Badge>
           </div>
         )}
 
