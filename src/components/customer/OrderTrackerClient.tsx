@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { getOrderDetailsAction, cancelCustomerOrderAction } from '@/features/orders/order.actions';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,7 +33,18 @@ const ORDER_STEPS = [
 export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string }) {
   const params = useParams();
   const router = useRouter();
-  const orderId = (params?.id as string) || initialOrderId;
+  const searchParams = useSearchParams();
+
+  // Resolve orderId from params, searchParams (?id=...), or window.location
+  let resolvedId = (params?.id as string) || searchParams?.get('id') || searchParams?.get('order_id') || initialOrderId;
+  if ((!resolvedId || resolvedId === 'sample-order') && typeof window !== 'undefined') {
+    const pathMatch = window.location.pathname.match(/orders\/([a-zA-Z0-9-]+)/);
+    if (pathMatch && pathMatch[1] && pathMatch[1] !== 'sample-order') {
+      resolvedId = pathMatch[1];
+    }
+  }
+
+  const orderId = resolvedId;
 
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);

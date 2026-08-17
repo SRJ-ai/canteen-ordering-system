@@ -43,6 +43,7 @@ jobs:
         run: |
           npm run build
           touch ./out/.nojekyll
+          cp ./public/404.html ./out/404.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { placeOrderAction } from '@/features/orders/order.actions';
+import { PaymentGatewayModal } from '@/components/customer/PaymentGatewayModal';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +22,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<'UPI' | 'CASH' | 'CARD'>('UPI');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   if (!isLoaded) {
     return (
@@ -45,8 +47,13 @@ export default function CheckoutPage() {
     );
   }
 
-  const handlePlaceOrder = async (e: React.FormEvent) => {
+  const handleOpenPaymentModal = (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
+    setIsPaymentModalOpen(true);
+  };
+
+  const handleExecuteOrderPlacement = async () => {
     setIsSubmitting(true);
     setErrorMessage(null);
 
@@ -70,10 +77,11 @@ export default function CheckoutPage() {
     });
 
     setIsSubmitting(false);
+    setIsPaymentModalOpen(false);
 
     if (res.success && res.orderId) {
       clearCart();
-      router.push(`/orders/${res.orderId}`);
+      router.push(`/orders/?id=${res.orderId}`);
     } else {
       setErrorMessage(res.error || 'Failed to place order. Please try again.');
     }
@@ -104,7 +112,7 @@ export default function CheckoutPage() {
         </div>
       )}
 
-      <form onSubmit={handlePlaceOrder} className="space-y-6">
+      <form onSubmit={handleOpenPaymentModal} className="space-y-6">
         {/* Table & Customer Details */}
         <Card className="rounded-3xl border border-slate-200/80 shadow-xs bg-white p-6 space-y-4">
           <div className="flex items-center justify-between border-b pb-3">
@@ -208,7 +216,7 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* UPI Dynamic Simulation Box */}
+          {/* UPI Preview Simulation Box */}
           {paymentMethod === 'UPI' && (
             <div className="p-4 rounded-2xl bg-gradient-to-r from-orange-50/90 to-amber-50/90 border border-orange-200/80 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left animate-in fade-in-50">
               <div className="bg-white p-3 rounded-xl border shadow-xs flex items-center justify-center">
@@ -216,13 +224,13 @@ export default function CheckoutPage() {
               </div>
               <div className="space-y-1">
                 <div className="font-bold text-xs text-slate-900 flex items-center justify-center sm:justify-start gap-1.5">
-                  <ShieldCheck className="h-4 w-4 text-emerald-600" /> 100% Secure UPI Instant Gateway
+                  <ShieldCheck className="h-4 w-4 text-emerald-600" /> PayCat / UPI Gateway Sandbox
                 </div>
                 <p className="text-[11px] text-muted-foreground">
                   Order amount of <strong className="text-slate-900">₹{total.toFixed(2)}</strong> will be verified automatically.
                 </p>
                 <div className="text-[10px] text-emerald-700 font-semibold flex items-center justify-center sm:justify-start gap-1">
-                  <CheckCircle2 className="h-3 w-3" /> Auto-confirmation enabled
+                  <CheckCircle2 className="h-3 w-3" /> Live Sandbox Testing Enabled
                 </div>
               </div>
             </div>
@@ -254,16 +262,29 @@ export default function CheckoutPage() {
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="h-5 w-5 animate-spin" /> Placing Order...
+                <Loader2 className="h-5 w-5 animate-spin" /> Authorizing Order...
               </>
             ) : (
               <>
-                <Sparkles className="h-5 w-5" /> Place Order &bull; ₹{total.toFixed(2)}
+                <Sparkles className="h-5 w-5" /> Proceed to Pay &bull; ₹{total.toFixed(2)}
               </>
             )}
           </Button>
         </Card>
       </form>
+
+      {/* PayCat / UPI Sandbox Modal */}
+      <PaymentGatewayModal
+        isOpen={isPaymentModalOpen}
+        amount={total}
+        paymentMethod={paymentMethod}
+        onSuccess={handleExecuteOrderPlacement}
+        onFailure={(reason) => {
+          setIsPaymentModalOpen(false);
+          setErrorMessage(`Payment Failed: ${reason}`);
+        }}
+        onCancel={() => setIsPaymentModalOpen(false)}
+      />
     </div>
   );
 }

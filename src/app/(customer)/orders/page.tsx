@@ -1,14 +1,41 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { History, ArrowRight, Clock, Utensils, MapPin, ReceiptText, Loader2 } from 'lucide-react';
+import { OrderTrackerClient } from '@/components/customer/OrderTrackerClient';
+
+function OrdersPageContent() {
+  const searchParams = useSearchParams();
+  const directOrderId = searchParams?.get('id') || searchParams?.get('order_id');
+
+  // If a specific order ID query param is present, render the tracker directly!
+  if (directOrderId) {
+    return <OrderTrackerClient initialOrderId={directOrderId} />;
+  }
+
+  return <CustomerOrdersList />;
+}
 
 export default function CustomerOrdersPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-md mx-auto py-24 text-center space-y-3">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+        <p className="text-xs text-muted-foreground font-semibold">Loading orders...</p>
+      </div>
+    }>
+      <OrdersPageContent />
+    </Suspense>
+  );
+}
+
+function CustomerOrdersList() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -150,7 +177,7 @@ export default function CustomerOrdersPage() {
                 </CardContent>
 
                 <CardFooter className="p-5 pt-0 pb-4 flex justify-end">
-                  <Link href={`/orders/${order.id}`} className="w-full">
+                  <Link href={`/orders/?id=${order.id}`} className="w-full">
                     <Button variant="outline" size="sm" className="w-full rounded-xl text-xs font-bold flex items-center justify-center gap-1">
                       Track / View Details <ArrowRight className="h-3.5 w-3.5" />
                     </Button>
