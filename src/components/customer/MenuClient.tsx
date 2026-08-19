@@ -10,16 +10,12 @@ import {
   Search,
   Plus,
   Minus,
-  Sparkles,
-  SlidersHorizontal,
-  Check,
   Star,
   Flame,
   Clock,
   Zap,
   CheckCircle2,
   Leaf,
-  Activity,
 } from 'lucide-react';
 import { ItemCustomizationModal, MenuItemWithAddons } from './ItemCustomizationModal';
 
@@ -116,119 +112,122 @@ export function MenuClient({ initialCategories, initialMenuItems }: MenuClientPr
         addons: [],
         quantity: 1,
       });
-      showToast(`Added 1x ${item.name} to your tray!`);
+      showToast(`Added 1x ${item.name} to your tray`);
     }
   };
 
+  const dietTabs: { key: typeof dietaryFilter; label: string; icon?: React.ReactNode; active: string; idle: string }[] = [
+    { key: 'ALL', label: 'All items', active: 'bg-ink text-background', idle: 'bg-card text-ink border border-border hover:bg-secondary' },
+    { key: 'VEG', label: 'Pure veg', icon: <Leaf className="h-3 w-3" />, active: 'bg-leaf text-white', idle: 'bg-card text-leaf border border-leaf/30 hover:bg-leaf/5' },
+    { key: 'FAST', label: 'Quick bites (≤ ₹60)', icon: <Zap className="h-3 w-3" />, active: 'bg-primary text-primary-foreground', idle: 'bg-card text-primary-deep border border-primary/30 hover:bg-primary/5' },
+    { key: 'TOP_RATED', label: "Chef's specials", icon: <Star className="h-3 w-3 fill-current" />, active: 'bg-chutney text-white', idle: 'bg-card text-chutney border border-chutney/30 hover:bg-chutney/5' },
+  ];
+
   return (
-    <div className="space-y-6 font-sans">
-      {/* Micro-Toast Notification */}
+    <div className="space-y-6">
+      {/* Micro-Toast */}
       {toastMessage && (
         <aside
           role="status"
           aria-live="polite"
-          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-slate-950/95 text-white px-4 py-2 rounded-2xl shadow-2xl border border-slate-700/80 backdrop-blur-md flex items-center gap-2 text-xs font-bold animate-in fade-in-50 slide-in-from-top-4"
+          className="fixed left-1/2 top-20 z-50 flex -translate-x-1/2 items-center gap-2 rounded-lg border border-ink/20 bg-ink px-4 py-2 text-xs font-bold text-background shadow-xl animate-in fade-in-50 slide-in-from-top-4"
         >
-          <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-primary-soft" />
           <span>{toastMessage}</span>
         </aside>
       )}
 
-      {/* Hero Banner */}
-      <div className="relative rounded-3xl bg-gradient-to-r from-orange-500 via-amber-500 to-amber-600 p-6 md:p-8 text-white shadow-lg overflow-hidden">
-        <div className="relative z-10 max-w-lg space-y-2">
-          <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase">
-            <Sparkles className="h-3.5 w-3.5" /> GPREC Campus Food Court
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Craving something hot &amp; delicious?
+      {/* Menu board header */}
+      <div className="overflow-hidden rounded-xl bg-ink px-6 py-7 text-background md:px-8">
+        <div className="max-w-lg space-y-2">
+          <p className="text-[12px] font-bold uppercase tracking-[0.16em] text-primary-soft">
+            GPREC Campus Food Court
+          </p>
+          <h1 className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl">
+            Craving something hot and fresh?
           </h1>
-          <p className="text-xs sm:text-sm text-orange-100 font-medium">
-            Browse our freshly prepared canteen specialties, customize toppings, and order straight from your table!
+          <p className="text-sm text-background/70">
+            Browse today&rsquo;s canteen specials, customize your toppings, and order straight from your table.
           </p>
         </div>
 
-        {/* Search Bar Inside Hero */}
-        <div className="relative z-10 mt-5 max-w-md">
+        <div className="mt-5 max-w-md">
           <div className="relative flex items-center">
-            <Search className="absolute left-3.5 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3.5 h-4 w-4 text-steel" />
             <Input
               type="text"
-              placeholder="Search by dish name, e.g. Dosa, Thali, Chai..."
+              placeholder="Search dishes, e.g. Dosa, Thali, Chai"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-white text-slate-900 pl-10 pr-4 h-11 rounded-2xl shadow-md border-0 focus-visible:ring-2 focus-visible:ring-orange-300 text-sm font-medium"
+              className="h-11 rounded-lg border-0 bg-card pl-10 pr-4 text-sm font-medium text-ink shadow-sm focus-visible:ring-2 focus-visible:ring-primary"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 text-xs text-slate-400 hover:text-slate-600"
+                className="absolute right-3 text-xs font-semibold text-steel hover:text-ink"
               >
                 Clear
               </button>
             )}
           </div>
         </div>
-
-        {/* Decorative Background Blob */}
-        <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
       </div>
 
-      {/* Live Campus Crowd Heatmap & Kitchen Status Banner */}
-      <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      {/* Live status banner */}
+      <div className="tray-card flex flex-col justify-between gap-3 p-3.5 sm:flex-row sm:items-center">
         <div className="flex items-center gap-2.5">
           <span className="relative flex h-2.5 w-2.5">
-            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isLunchRush ? 'bg-amber-400' : 'bg-emerald-400'}`}></span>
-            <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${isLunchRush ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
+            <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 motion-safe:animate-ping ${isLunchRush ? 'bg-primary' : 'bg-leaf'}`}></span>
+            <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${isLunchRush ? 'bg-primary' : 'bg-leaf'}`}></span>
           </span>
-          <div className="text-xs font-bold text-slate-800">
-            Food Court Status:{' '}
-            <span className={`font-extrabold ${isLunchRush ? 'text-amber-700' : 'text-emerald-700'}`}>
-              {isLunchRush ? 'Peak Lunch Hours (Moderate Queue)' : 'Fast-Track Seating Open'}
+          <div className="text-xs font-bold text-ink">
+            Food court status:{' '}
+            <span className={`font-extrabold ${isLunchRush ? 'text-primary-deep' : 'text-leaf'}`}>
+              {isLunchRush ? 'Peak lunch hours, moderate queue' : 'Fast-track seating open'}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
-          <span className="bg-orange-50 text-orange-800 border border-orange-200/60 px-2 py-0.5 rounded-lg font-bold text-[11px] flex items-center gap-1">
-            <Clock className="h-3 w-3" /> Average Prep: ~5-8 mins
+        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+          <span className="flex items-center gap-1 rounded-md border border-primary/25 bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary-deep">
+            <Clock className="h-3 w-3" /> Avg prep <span className="numeric">~5-8</span> mins
           </span>
-          <span>&bull; Strict FCFS Queue</span>
+          <span className="text-steel">Strict FCFS queue</span>
         </div>
       </div>
 
-      {/* Campus Best Sellers / Quick Adds */}
+      {/* Best sellers */}
       {searchQuery === '' && selectedCategory === 'ALL' && bestSellers.length > 0 && (
-        <section aria-label="Campus Best Sellers" className="space-y-3">
+        <section aria-label="Campus best sellers" className="space-y-3">
           <div className="flex items-center justify-between px-1">
-            <h2 className="font-extrabold text-sm text-slate-900 flex items-center gap-1.5">
-              <Flame className="h-4 w-4 text-orange-500" /> Campus Best Sellers
+            <h2 className="flex items-center gap-1.5 font-display text-sm font-extrabold text-ink">
+              <Flame className="h-4 w-4 text-chutney" /> Campus best sellers
             </h2>
-            <span className="text-[11px] font-bold text-primary">Top Rated by Students</span>
+            <span className="text-[11px] font-bold text-primary-deep">Top rated by students</span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {bestSellers.map((item) => (
               <div
                 key={item.id}
-                className="bg-gradient-to-b from-amber-50/60 to-white p-3.5 rounded-2xl border border-amber-200/60 shadow-xs flex flex-col justify-between hover:shadow-md transition-all group"
+                className="tray-card tray-card-hover group flex flex-col justify-between p-3.5"
               >
                 <div>
-                  <div className="flex items-center justify-between text-[10px] text-amber-700 font-bold mb-1">
-                    <span className="flex items-center gap-0.5"><Star className="h-3 w-3 fill-amber-400 text-amber-400" /> 4.9</span>
-                    <span className="text-slate-400 font-medium">~6m</span>
+                  <div className="mb-1 flex items-center justify-between text-[10px] font-bold">
+                    <span className="numeric flex items-center gap-0.5 text-primary-deep"><Star className="h-3 w-3 fill-primary text-primary" /> 4.9</span>
+                    <span className="numeric text-steel">~6m</span>
                   </div>
-                  <h4 className="font-bold text-xs text-slate-900 group-hover:text-primary transition-colors line-clamp-1">
+                  <h4 className="line-clamp-1 font-display text-xs font-bold text-ink transition-colors group-hover:text-primary-deep">
                     {item.name}
                   </h4>
                 </div>
 
-                <div className="flex items-center justify-between mt-3 pt-2 border-t border-amber-100">
-                  <span className="font-extrabold text-xs text-slate-900">₹{item.base_price}</span>
+                <div className="mt-3 flex items-center justify-between border-t border-border pt-2">
+                  <span className="numeric text-xs font-extrabold text-ink">₹{item.base_price}</span>
                   <Button
                     size="sm"
                     onClick={() => handleAddClick(item)}
-                    className="h-6 px-2 text-[10px] font-bold bg-primary hover:bg-primary/90 text-white rounded-lg"
+                    className="h-6 rounded-md px-2 text-[10px] font-bold"
                   >
                     + Add
                   </Button>
@@ -239,61 +238,33 @@ export function MenuClient({ initialCategories, initialMenuItems }: MenuClientPr
         </section>
       )}
 
-      {/* Smart Dietary Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs">
-        <button
-          onClick={() => setDietaryFilter('ALL')}
-          className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
-            dietaryFilter === 'ALL'
-              ? 'bg-slate-900 text-white shadow-xs'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-          }`}
-        >
-          All Items
-        </button>
-        <button
-          onClick={() => setDietaryFilter('VEG')}
-          className={`px-3 py-1.5 rounded-xl font-bold flex items-center gap-1 transition-all ${
-            dietaryFilter === 'VEG'
-              ? 'bg-emerald-600 text-white shadow-xs'
-              : 'bg-emerald-50 text-emerald-800 border border-emerald-200/60 hover:bg-emerald-100'
-          }`}
-        >
-          <Leaf className="h-3 w-3" /> Pure Veg
-        </button>
-        <button
-          onClick={() => setDietaryFilter('FAST')}
-          className={`px-3 py-1.5 rounded-xl font-bold flex items-center gap-1 transition-all ${
-            dietaryFilter === 'FAST'
-              ? 'bg-amber-600 text-white shadow-xs'
-              : 'bg-amber-50 text-amber-800 border border-amber-200/60 hover:bg-amber-100'
-          }`}
-        >
-          <Zap className="h-3 w-3" /> Quick Bites (&le; ₹60)
-        </button>
-        <button
-          onClick={() => setDietaryFilter('TOP_RATED')}
-          className={`px-3 py-1.5 rounded-xl font-bold flex items-center gap-1 transition-all ${
-            dietaryFilter === 'TOP_RATED'
-              ? 'bg-orange-600 text-white shadow-xs'
-              : 'bg-orange-50 text-orange-800 border border-orange-200/60 hover:bg-orange-100'
-          }`}
-        >
-          <Star className="h-3 w-3 fill-orange-400 text-orange-400" /> Chef&apos;s Specials
-        </button>
+      {/* Dietary filter tabs */}
+      <div className="scrollbar-none flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+        {dietTabs.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setDietaryFilter(t.key)}
+            className={`flex items-center gap-1 whitespace-nowrap rounded-lg px-3 py-1.5 font-bold transition-all ${
+              dietaryFilter === t.key ? t.active : t.idle
+            }`}
+          >
+            {t.icon}
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      {/* Category Pills Navigation */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+      {/* Category pills */}
+      <div className="scrollbar-none flex items-center gap-2 overflow-x-auto pb-2">
         <button
           onClick={() => setSelectedCategory('ALL')}
-          className={`px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all shadow-xs ${
+          className={`whitespace-nowrap rounded-lg px-4 py-2 text-xs font-bold transition-all sm:text-sm ${
             selectedCategory === 'ALL'
-              ? 'bg-slate-900 text-white shadow-md'
-              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
+              ? 'bg-ink text-background'
+              : 'border border-border bg-card text-ink hover:bg-secondary'
           }`}
         >
-          All Categories ({initialMenuItems.length})
+          All categories (<span className="numeric">{initialMenuItems.length}</span>)
         </button>
         {initialCategories.map((cat) => {
           const isSelected = selectedCategory === cat.id;
@@ -302,14 +273,14 @@ export function MenuClient({ initialCategories, initialMenuItems }: MenuClientPr
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all shadow-xs flex items-center gap-1.5 ${
+              className={`flex items-center gap-1.5 whitespace-nowrap rounded-lg px-4 py-2 text-xs font-bold transition-all sm:text-sm ${
                 isSelected
-                  ? 'bg-primary text-white shadow-md'
-                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'border border-border bg-card text-ink hover:bg-secondary'
               }`}
             >
               <span>{cat.name}</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500'}`}>
+              <span className={`numeric rounded-full px-1.5 text-[10px] ${isSelected ? 'bg-ink/15 text-primary-foreground' : 'bg-secondary text-steel'}`}>
                 {count}
               </span>
             </button>
@@ -317,30 +288,31 @@ export function MenuClient({ initialCategories, initialMenuItems }: MenuClientPr
         })}
       </div>
 
-      {/* Menu Items Grid */}
+      {/* Menu grid */}
       {filteredItems.length === 0 ? (
-        <div className="bg-white rounded-3xl p-12 text-center border border-dashed border-slate-200 space-y-3">
-          <div className="bg-orange-50 text-primary w-12 h-12 rounded-full flex items-center justify-center mx-auto">
+        <div className="tray-card space-y-3 border-dashed p-12 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/15 text-primary-deep">
             <Search className="h-6 w-6" />
           </div>
-          <h3 className="font-bold text-lg text-slate-800">No dishes found</h3>
-          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-            We couldn&apos;t find any items matching your selected filters. Try resetting the category or dietary preference.
+          <h3 className="font-display text-lg font-bold text-ink">No dishes found</h3>
+          <p className="mx-auto max-w-sm text-xs text-muted-foreground">
+            Nothing matches these filters right now. Try resetting the category or dietary preference.
           </p>
           <Button
             variant="outline"
             size="sm"
+            className="border-ink/15 bg-card font-semibold text-ink hover:bg-secondary"
             onClick={() => {
               setSearchQuery('');
               setSelectedCategory('ALL');
               setDietaryFilter('ALL');
             }}
           >
-            Reset All Filters
+            Reset all filters
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
           {filteredItems.map((item) => {
             const qtyInCart = getItemCartQuantity(item.id);
             const hasAddons = item.menu_item_addons && item.menu_item_addons.length > 0;
@@ -348,56 +320,54 @@ export function MenuClient({ initialCategories, initialMenuItems }: MenuClientPr
             return (
               <Card
                 key={item.id}
-                className="group bg-white rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden food-card-hover"
+                className="tray-card tray-card-hover group flex flex-col justify-between overflow-hidden"
               >
                 <CardHeader className="p-5 pb-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <span className="veg-indicator"><span className="veg-indicator-dot"></span></span>
-                      <span className="text-[11px] font-semibold text-primary uppercase tracking-wide">
+                      <span className="text-[11px] font-bold uppercase tracking-wide text-chutney">
                         {item.categories?.name}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      {hasAddons && (
-                        <Badge variant="secondary" className="text-[10px] bg-orange-50 text-orange-700 border-orange-200 font-semibold px-2">
-                          Customizable
-                        </Badge>
-                      )}
-                    </div>
+                    {hasAddons && (
+                      <Badge variant="secondary" className="border-primary/25 bg-primary/10 px-2 text-[10px] font-bold text-primary-deep">
+                        Customizable
+                      </Badge>
+                    )}
                   </div>
 
-                  <CardTitle className="text-base sm:text-lg font-bold text-slate-900 pt-1 group-hover:text-primary transition-colors">
+                  <CardTitle className="pt-1 font-display text-base font-bold text-ink transition-colors group-hover:text-primary-deep sm:text-lg">
                     {item.name}
                   </CardTitle>
 
                   {item.description && (
-                    <CardDescription className="text-xs text-muted-foreground line-clamp-2 pt-1 leading-relaxed">
+                    <CardDescription className="line-clamp-2 pt-1 text-xs leading-relaxed text-muted-foreground">
                       {item.description}
                     </CardDescription>
                   )}
 
-                  {/* Micro Tags */}
-                  <div className="flex items-center gap-2 pt-2 text-[10px] font-bold text-slate-400">
-                    <span className="flex items-center gap-0.5 text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
-                      <Star className="h-2.5 w-2.5 fill-amber-400" /> 4.8
+                  <div className="flex items-center gap-2 pt-2 text-[10px] font-bold text-muted-foreground">
+                    <span className="numeric flex items-center gap-0.5 rounded bg-primary/10 px-1.5 py-0.5 text-primary-deep">
+                      <Star className="h-2.5 w-2.5 fill-primary text-primary" /> 4.8
                     </span>
-                    <span>&bull;</span>
-                    <span>⏱️ ~5-8 mins</span>
+                    <span className="numeric flex items-center gap-0.5 text-steel">
+                      <Clock className="h-3 w-3" /> ~5-8 mins
+                    </span>
                   </div>
                 </CardHeader>
 
-                <CardFooter className="p-5 pt-2 flex items-center justify-between border-t border-slate-100 bg-slate-50/40 mt-3">
+                <CardFooter className="mt-3 flex items-center justify-between border-t border-border bg-secondary/40 p-5 pt-3">
                   <div>
-                    <span className="text-[11px] text-muted-foreground font-medium block">Price</span>
-                    <span className="text-xl font-extrabold text-slate-900 tracking-tight">
+                    <span className="block text-[11px] font-medium text-muted-foreground">Price</span>
+                    <span className="numeric text-xl font-extrabold tracking-tight text-ink">
                       ₹{item.base_price}
                     </span>
                   </div>
 
                   <div>
                     {qtyInCart > 0 && !hasAddons ? (
-                      <div className="flex items-center gap-1.5 bg-primary text-white rounded-2xl p-1 shadow-md">
+                      <div className="flex items-center gap-1.5 rounded-lg bg-primary p-1 text-primary-foreground shadow-sm">
                         <button
                           onClick={() => {
                             const cartItem = cartItems.find((i) => i.menuItemId === item.id);
@@ -406,16 +376,18 @@ export function MenuClient({ initialCategories, initialMenuItems }: MenuClientPr
                               updateQuantity(cartItem.id, cartItem.quantity - 1);
                             }
                           }}
-                          className="w-7 h-7 rounded-xl hover:bg-black/10 flex items-center justify-center transition"
+                          className="flex h-7 w-7 items-center justify-center rounded-md transition hover:bg-ink/10"
+                          aria-label="Remove one"
                         >
                           <Minus className="h-3.5 w-3.5" />
                         </button>
-                        <span className="font-extrabold text-xs px-1 min-w-[16px] text-center">
+                        <span className="numeric min-w-[16px] px-1 text-center text-xs font-extrabold">
                           {qtyInCart}
                         </span>
                         <button
                           onClick={() => handleAddClick(item)}
-                          className="w-7 h-7 rounded-xl hover:bg-black/10 flex items-center justify-center transition"
+                          className="flex h-7 w-7 items-center justify-center rounded-md transition hover:bg-ink/10"
+                          aria-label="Add one"
                         >
                           <Plus className="h-3.5 w-3.5" />
                         </button>
@@ -423,7 +395,7 @@ export function MenuClient({ initialCategories, initialMenuItems }: MenuClientPr
                     ) : (
                       <Button
                         onClick={() => handleAddClick(item)}
-                        className="bg-primary hover:bg-primary/90 text-white font-bold text-xs h-9 px-4 rounded-2xl shadow-sm flex items-center gap-1.5 transition-transform hover:scale-105 active:scale-95"
+                        className="h-9 gap-1.5 px-4 text-xs font-bold"
                       >
                         <Plus className="h-4 w-4" />
                         <span>{hasAddons ? 'Customize' : 'Add'}</span>
@@ -445,7 +417,7 @@ export function MenuClient({ initialCategories, initialMenuItems }: MenuClientPr
         onAddToCart={(configured) => {
           playPopSound();
           addItem(configured);
-          showToast(`Added customized ${configured.name} to cart!`);
+          showToast(`Added customized ${configured.name} to cart`);
         }}
       />
     </div>

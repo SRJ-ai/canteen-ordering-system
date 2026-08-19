@@ -12,11 +12,7 @@ import {
   BellRing,
   Clock,
   ChevronRight,
-  Sparkles,
-  CheckCircle2,
-  Utensils,
   X,
-  Lock,
 } from 'lucide-react';
 
 interface ActiveOrderSummary {
@@ -29,17 +25,15 @@ interface ActiveOrderSummary {
 
 export function ActiveOrderFloatTracker() {
   const pathname = usePathname();
-  const { user, role } = useAuth();
+  const { user } = useAuth();
   const [activeOrder, setActiveOrder] = useState<ActiveOrderSummary | null>(null);
   const [isDismissed, setIsDismissed] = useState(false);
 
-  // Check Supabase strictly for orders owned by THIS specific user/session
   useEffect(() => {
     async function checkMyActiveOrders() {
       try {
         const supabase = createClient();
 
-        // 1. Collect user's owned order IDs from localStorage
         let myOrderIds: string[] = [];
         try {
           const stored = localStorage.getItem('canteen_my_orders');
@@ -48,7 +42,6 @@ export function ActiveOrderFloatTracker() {
           }
         } catch (e) {}
 
-        // If no authenticated user AND no local order history, do NOT query other people's orders
         if (!user?.id && myOrderIds.length === 0) {
           setActiveOrder(null);
           return;
@@ -60,7 +53,6 @@ export function ActiveOrderFloatTracker() {
           .in('status', ['PENDING', 'CONFIRMED', 'ACCEPTED', 'PREPARING', 'READY'])
           .order('created_at', { ascending: false });
 
-        // Privacy Filter: Filter strictly by authenticated user ID or local order IDs
         if (user?.id && myOrderIds.length > 0) {
           query = query.or(`user_id.eq.${user.id},id.in.(${myOrderIds.join(',')})`);
         } else if (user?.id) {
@@ -72,7 +64,6 @@ export function ActiveOrderFloatTracker() {
         const { data, error } = await query.limit(1);
 
         if (!error && data && data.length > 0) {
-          // If created within last 3 hours
           const orderAgeHours = (Date.now() - new Date(data[0].created_at).getTime()) / (1000 * 60 * 60);
           if (orderAgeHours < 3) {
             setActiveOrder(data[0]);
@@ -92,7 +83,6 @@ export function ActiveOrderFloatTracker() {
     return () => clearInterval(interval);
   }, [user]);
 
-  // Hide on order tracker page itself or admin/kitchen pages
   if (
     !activeOrder ||
     isDismissed ||
@@ -105,29 +95,27 @@ export function ActiveOrderFloatTracker() {
 
   const isReady = activeOrder.status === 'READY';
   const isCooking = activeOrder.status === 'PREPARING';
-  const isAccepted = activeOrder.status === 'ACCEPTED';
 
   return (
     <aside
       aria-label="Your active order status"
-      className="fixed bottom-18 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-lg font-sans print:hidden animate-in slide-in-from-bottom-5 duration-300"
+      className="fixed bottom-20 left-1/2 z-40 w-[92%] max-w-lg -translate-x-1/2 print:hidden animate-in slide-in-from-bottom-5 duration-300 sm:bottom-6"
     >
-      <div className={`p-3.5 sm:p-4 rounded-3xl shadow-2xl border backdrop-blur-xl transition-all ${
+      <div className={`rounded-xl border bg-ink p-3.5 text-background shadow-2xl transition-all sm:p-4 ${
         isReady
-          ? 'bg-emerald-950/95 text-white border-emerald-500/80 ring-2 ring-emerald-400/50 shadow-emerald-900/30 animate-bounce-subtle'
+          ? 'border-leaf/70 ring-2 ring-leaf/40'
           : isCooking
-          ? 'bg-slate-950/95 text-white border-amber-500/60 ring-1 ring-amber-400/30'
-          : 'bg-slate-950/95 text-white border-slate-700/80'
+          ? 'border-primary/60 ring-1 ring-primary/30'
+          : 'border-white/10'
       }`}>
         <div className="flex items-center justify-between gap-3">
-          {/* Status Icon */}
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className={`p-2 rounded-2xl shrink-0 ${
+            <div className={`shrink-0 rounded-lg p-2 ${
               isReady
-                ? 'bg-emerald-500 text-slate-950 animate-pulse'
+                ? 'bg-leaf text-white motion-safe:animate-pulse'
                 : isCooking
-                ? 'bg-amber-500 text-slate-950'
-                : 'bg-primary text-white'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-primary text-primary-foreground'
             }`}>
               {isReady ? (
                 <BellRing className="h-5 w-5" />
@@ -140,39 +128,38 @@ export function ActiveOrderFloatTracker() {
 
             <div className="overflow-hidden">
               <div className="flex items-center gap-1.5">
-                <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 bg-white/10 rounded text-slate-300">
+                <span className="numeric rounded bg-white/10 px-1.5 text-[10px] font-bold text-background/80">
                   {activeOrder.order_number || 'CAN-ORDER'}
                 </span>
-                <Badge className={`text-[9px] font-black border-0 uppercase tracking-wider ${
+                <Badge className={`border-0 text-[9px] font-bold uppercase tracking-wider ${
                   isReady
-                    ? 'bg-emerald-400 text-slate-950'
+                    ? 'bg-leaf text-white'
                     : isCooking
-                    ? 'bg-amber-400 text-slate-950'
-                    : 'bg-blue-400 text-slate-950'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-steel text-background'
                 }`}>
-                  {isReady ? 'Ready for Pickup!' : isCooking ? 'Cooking Now' : 'In Kitchen Queue'}
+                  {isReady ? 'Ready for pickup' : isCooking ? 'Cooking now' : 'In kitchen queue'}
                 </Badge>
               </div>
 
-              <p className="text-xs font-bold text-slate-100 truncate mt-0.5">
+              <p className="mt-0.5 truncate text-xs font-bold text-background">
                 {isReady
-                  ? 'Head to canteen counter with token!'
+                  ? 'Head to the canteen counter with your token'
                   : isCooking
-                  ? 'Chef is preparing your meal (~4 mins)'
-                  : 'Order acknowledged by kitchen team'}
+                  ? 'Chef is preparing your meal, ~4 mins'
+                  : 'Order acknowledged by the kitchen team'}
               </p>
             </div>
           </div>
 
-          {/* Action Link */}
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex shrink-0 items-center gap-1">
             <Link href={`/orders/?id=${activeOrder.id}`}>
               <Button
                 size="sm"
-                className={`rounded-2xl text-xs font-extrabold px-3.5 h-9 shadow-md flex items-center gap-1 transition-transform hover:scale-105 ${
+                className={`flex h-9 items-center gap-1 rounded-lg px-3.5 text-xs font-extrabold shadow-md ${
                   isReady
-                    ? 'bg-emerald-400 hover:bg-emerald-300 text-slate-950'
-                    : 'bg-primary hover:bg-primary/90 text-white'
+                    ? 'bg-leaf text-white hover:bg-leaf/90'
+                    : 'bg-primary text-primary-foreground hover:bg-primary-deep'
                 }`}
               >
                 <span>Track</span>
@@ -182,19 +169,20 @@ export function ActiveOrderFloatTracker() {
 
             <button
               onClick={() => setIsDismissed(true)}
-              className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-white/10"
+              className="rounded-lg p-1.5 text-background/60 hover:bg-white/10 hover:text-background"
               title="Dismiss for now"
+              aria-label="Dismiss"
             >
               <X className="h-3.5 w-3.5" />
             </button>
           </div>
         </div>
 
-        {/* Mini progress bar */}
-        <div className="w-full bg-white/10 h-1 rounded-full mt-2.5 overflow-hidden">
+        {/* Mini progress */}
+        <div className="mt-2.5 h-1 w-full overflow-hidden rounded-full bg-white/10">
           <div
             className={`h-full transition-all duration-500 ${
-              isReady ? 'bg-emerald-400 w-full' : isCooking ? 'bg-amber-400 w-3/4' : 'bg-primary w-1/3'
+              isReady ? 'w-full bg-leaf' : isCooking ? 'w-3/4 bg-primary' : 'w-1/3 bg-primary'
             }`}
           ></div>
         </div>

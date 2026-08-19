@@ -24,6 +24,7 @@ import {
   Zap,
   Maximize,
   Minimize,
+  StickyNote,
 } from 'lucide-react';
 
 interface KitchenOrder {
@@ -243,20 +244,20 @@ export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) 
   return (
     <div className="space-y-6 font-sans">
       {/* Top Controls Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-900/90 backdrop-blur-md p-4 rounded-3xl border border-slate-800 shadow-xl">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#201B16] p-4 rounded-2xl border border-white/10 shadow-lg shadow-black/30">
         <div className="flex items-center gap-3">
-          <div className="bg-amber-500/20 text-amber-400 p-2.5 rounded-2xl border border-amber-500/30">
+          <div className="grid place-items-center bg-primary/20 text-primary p-2.5 rounded-xl border border-primary/40">
             <Flame className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="font-extrabold text-lg text-white tracking-tight flex items-center gap-2">
+            <h2 className="font-display font-bold text-lg text-background tracking-tight flex items-center gap-2">
               GPREC Kitchen Display (KDS)
-              <span className="bg-emerald-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full">
-                PRIORITY QUEUE LIVE
+              <span className="bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md">
+                Priority Queue Live
               </span>
             </h2>
-            <p className="text-xs text-slate-400">
-              {pendingOrders.length + preparingOrders.length + readyOrders.length} Active Orders &bull; Faculty Fast-Track &amp; FCFS Tiering
+            <p className="text-xs text-background/60">
+              <span className="numeric font-bold text-background/80">{pendingOrders.length + preparingOrders.length + readyOrders.length}</span> Active Orders &bull; Faculty Fast-Track &amp; FCFS Tiering
             </p>
           </div>
         </div>
@@ -266,10 +267,10 @@ export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) 
             variant="outline"
             size="sm"
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className={`rounded-2xl text-xs font-bold transition-all ${
+            className={`rounded-lg text-xs font-bold transition-all ${
               soundEnabled
-                ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500'
-                : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                ? 'bg-primary text-primary-foreground border-primary hover:bg-primary-deep'
+                : 'bg-white/5 text-background/70 border-white/10 hover:bg-white/10 hover:text-background'
             }`}
           >
             {soundEnabled ? <Volume2 className="h-4 w-4 mr-1.5" /> : <VolumeX className="h-4 w-4 mr-1.5" />}
@@ -280,7 +281,7 @@ export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) 
             variant="outline"
             size="sm"
             onClick={toggleFullscreen}
-            className="bg-slate-800 text-slate-200 hover:bg-slate-700 border-slate-700 rounded-2xl text-xs font-bold"
+            className="bg-white/5 text-background/80 hover:bg-white/10 hover:text-background border-white/10 rounded-lg text-xs font-bold"
             title="Toggle Fullscreen Kitchen Display"
           >
             {isFullscreen ? (
@@ -298,7 +299,7 @@ export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) 
             variant="outline"
             size="sm"
             onClick={() => fetchOrders()}
-            className="bg-slate-800 text-slate-200 hover:bg-slate-700 border-slate-700 rounded-2xl text-xs font-bold"
+            className="bg-white/5 text-background/80 hover:bg-white/10 hover:text-background border-white/10 rounded-lg text-xs font-bold"
           >
             <RotateCw className="h-3.5 w-3.5 mr-1" /> Refresh
           </Button>
@@ -309,18 +310,18 @@ export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* 1. New Orders Column */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between bg-amber-500/15 border border-amber-500/30 p-3.5 rounded-2xl">
-            <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
-              <Clock className="h-4 w-4" /> 1. New Incoming
+          <div className="flex items-center justify-between bg-white/[0.06] border border-white/10 p-3.5 rounded-xl">
+            <div className="flex items-center gap-2 text-background font-display font-bold text-sm">
+              <Clock className="h-4 w-4 text-steel" /> 1. New Incoming
             </div>
-            <Badge className="bg-amber-500 text-slate-900 font-extrabold px-2.5">
+            <Badge className="numeric bg-white/10 text-background border border-white/15 font-bold px-2.5">
               {pendingOrders.length}
             </Badge>
           </div>
 
           <div className="space-y-4" role="list" aria-label="Incoming Orders">
             {pendingOrders.length === 0 ? (
-              <div className="p-8 text-center bg-slate-900/50 rounded-2xl border border-dashed border-slate-800 text-slate-500 text-xs">
+              <div className="p-8 text-center bg-white/[0.03] rounded-xl border border-dashed border-white/10 text-background/40 text-xs">
                 No incoming tickets
               </div>
             ) : (
@@ -345,18 +346,18 @@ export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) 
 
         {/* 2. In Cooking Column */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between bg-blue-500/15 border border-blue-500/30 p-3.5 rounded-2xl">
-            <div className="flex items-center gap-2 text-blue-400 font-bold text-sm">
+          <div className="flex items-center justify-between bg-primary/15 border border-primary/40 p-3.5 rounded-xl">
+            <div className="flex items-center gap-2 text-primary font-display font-bold text-sm">
               <ChefHat className="h-4 w-4" /> 2. Cooking in Progress
             </div>
-            <Badge className="bg-blue-500 text-white font-extrabold px-2.5">
+            <Badge className="numeric bg-primary text-primary-foreground font-bold px-2.5">
               {preparingOrders.length}
             </Badge>
           </div>
 
           <div className="space-y-4" role="list" aria-label="Cooking Orders">
             {preparingOrders.length === 0 ? (
-              <div className="p-8 text-center bg-slate-900/50 rounded-2xl border border-dashed border-slate-800 text-slate-500 text-xs">
+              <div className="p-8 text-center bg-white/[0.03] rounded-xl border border-dashed border-white/10 text-background/40 text-xs">
                 No orders being prepared
               </div>
             ) : (
@@ -383,18 +384,18 @@ export function KitchenKDSClient({ initialOrders = [] }: KitchenKDSClientProps) 
 
         {/* 3. Ready for Counter Pickup Column */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between bg-emerald-500/15 border border-emerald-500/30 p-3.5 rounded-2xl">
-            <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+          <div className="flex items-center justify-between bg-leaf/15 border border-leaf/40 p-3.5 rounded-xl">
+            <div className="flex items-center gap-2 text-leaf font-display font-bold text-sm">
               <BellRing className="h-4 w-4" /> 3. Ready for Pickup
             </div>
-            <Badge className="bg-emerald-500 text-slate-900 font-extrabold px-2.5">
+            <Badge className="numeric bg-leaf text-background font-bold px-2.5">
               {readyOrders.length}
             </Badge>
           </div>
 
           <div className="space-y-4" role="list" aria-label="Ready Orders">
             {readyOrders.length === 0 ? (
-              <div className="p-8 text-center bg-slate-900/50 rounded-2xl border border-dashed border-slate-800 text-slate-500 text-xs">
+              <div className="p-8 text-center bg-white/[0.03] rounded-xl border border-dashed border-white/10 text-background/40 text-xs">
                 No tickets waiting for pickup
               </div>
             ) : (
@@ -451,39 +452,39 @@ function KitchenTicketCard({
     <Card
       role="listitem"
       aria-label={`Order ${order.order_number || order.id} for ${tableNum}`}
-      className={`bg-slate-900 text-white rounded-3xl shadow-xl overflow-hidden flex flex-col justify-between transition-all border ${
+      className={`bg-[#201B16] text-background rounded-lg shadow-lg shadow-black/30 overflow-hidden flex flex-col justify-between transition-all border ${
         isFaculty
-          ? 'border-amber-400 ring-2 ring-amber-400/50 shadow-amber-500/10'
+          ? 'border-primary/70 ring-2 ring-primary/40'
           : isFirstInQueue
-          ? 'border-amber-400 ring-2 ring-amber-400/30'
+          ? 'border-primary/50 ring-1 ring-primary/25'
           : isUrgent
-          ? 'border-rose-500/80 ring-1 ring-rose-500/40'
-          : 'border-slate-800'
+          ? 'border-chutney/70 ring-1 ring-chutney/40'
+          : 'border-white/10'
       }`}
     >
       <CardHeader className={`p-4 pb-2 border-b ${
-        isFaculty ? 'bg-amber-950/40 border-amber-500/30' : 'border-slate-800 bg-slate-950/60'
+        isFaculty ? 'bg-primary/10 border-primary/30' : 'border-white/10 bg-black/20'
       }`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <Badge className="bg-slate-800 text-amber-400 border border-amber-500/30 font-mono text-xs px-2 py-0.5 font-bold">
+            <Badge className="numeric bg-white/5 text-primary border border-primary/30 font-mono text-xs px-2 py-0.5 font-bold">
               {order.order_number || `CAN-${order.id.slice(0, 4)}`}
             </Badge>
 
             {isFaculty && (
-              <Badge className="bg-amber-500 text-slate-950 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
-                <GraduationCap className="h-3 w-3" /> VIP FACULTY
+              <Badge className="bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                <GraduationCap className="h-3 w-3" /> VIP Faculty
               </Badge>
             )}
 
             {!isFaculty && isFirstInQueue && (
-              <Badge className="bg-amber-500 text-slate-950 text-[10px] font-black uppercase tracking-wider">
+              <Badge className="bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider">
                 #1 Next (FCFS)
               </Badge>
             )}
 
             {!isFaculty && !isFirstInQueue && (
-              <span className="text-[10px] text-slate-500 font-mono">
+              <span className="numeric text-[10px] text-background/50 font-mono">
                 #{queuePosition} in line
               </span>
             )}
@@ -491,18 +492,18 @@ function KitchenTicketCard({
 
           <span
             className={`text-[11px] font-semibold flex items-center gap-1 ${
-              isUrgent ? 'text-rose-400 animate-pulse font-bold' : 'text-slate-400'
+              isUrgent ? 'text-chutney animate-pulse font-bold' : 'text-background/60'
             }`}
           >
-            <Clock className="h-3 w-3" /> {timeAgo}
+            <Clock className="h-3 w-3" /> <span className="numeric">{timeAgo}</span>
           </span>
         </div>
 
         <div className="flex items-center justify-between pt-1.5">
-          <span className="text-base font-extrabold text-white flex items-center gap-1.5">
-            <MapPin className="h-4 w-4 text-emerald-400" /> {tableNum}
+          <span className="numeric text-lg font-bold text-background flex items-center gap-1.5">
+            <MapPin className="h-4 w-4 text-primary" /> {tableNum}
           </span>
-          <span className="text-xs font-bold text-slate-300">₹{order.total_amount}</span>
+          <span className="numeric text-sm font-bold text-background/80">₹{order.total_amount}</span>
         </div>
       </CardHeader>
 
@@ -511,12 +512,12 @@ function KitchenTicketCard({
         {order.order_items && order.order_items.length > 0 ? (
           order.order_items.map((item, idx) => (
             <div key={idx} className="space-y-1">
-              <div className="flex items-start justify-between text-sm font-bold text-slate-100">
+              <div className="flex items-start justify-between text-sm font-bold text-background">
                 <span className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center justify-center text-xs font-black shrink-0">
+                  <span className="numeric w-6 h-6 rounded-md bg-primary/20 text-primary border border-primary/40 flex items-center justify-center text-xs font-bold shrink-0">
                     {item.quantity}
                   </span>
-                  <span className="text-white text-sm font-bold">{item.menu_items?.name || 'Chef Specialty Dish'}</span>
+                  <span className="text-background text-sm font-bold">{item.menu_items?.name || 'Chef Specialty Dish'}</span>
                 </span>
               </div>
 
@@ -526,7 +527,7 @@ function KitchenTicketCard({
                   {item.order_item_addons.map((a, aidx) => (
                     <span
                       key={aidx}
-                      className="text-[11px] font-bold text-amber-300 bg-amber-950/60 border border-amber-500/40 px-1.5 py-0.5 rounded"
+                      className="text-[11px] font-bold text-primary-soft bg-primary/10 border border-primary/30 px-1.5 py-0.5 rounded-md"
                     >
                       +{a.menu_item_addon_options?.name}
                     </span>
@@ -537,17 +538,17 @@ function KitchenTicketCard({
           ))
         ) : (
           <div className="space-y-1">
-            <div className="flex items-start justify-between text-sm font-bold text-slate-100">
+            <div className="flex items-start justify-between text-sm font-bold text-background">
               <span className="flex items-center gap-2">
-                <span className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center justify-center text-xs font-black shrink-0">
+                <span className="numeric w-6 h-6 rounded-md bg-primary/20 text-primary border border-primary/40 flex items-center justify-center text-xs font-bold shrink-0">
                   1
                 </span>
-                <span className="text-white text-sm font-bold">
+                <span className="text-background text-sm font-bold">
                   {isFaculty ? 'GPREC Faculty Special Thali Meal' : 'Campus Hot Meal Combo'}
                 </span>
               </span>
             </div>
-            <div className="text-[11px] text-amber-400/90 pl-8 font-medium">
+            <div className="text-[11px] text-primary/80 pl-8 font-medium">
               Standard Hot Meal Preparation
             </div>
           </div>
@@ -555,26 +556,24 @@ function KitchenTicketCard({
 
         {/* Order Notes */}
         {order.order_notes && order.order_notes.length > 0 && (
-          <div className={`mt-2 text-xs p-2.5 rounded-xl font-medium ${
+          <div className={`mt-2 flex items-start gap-1.5 text-xs p-2.5 rounded-lg font-medium ${
             isFaculty
-              ? 'bg-amber-950/70 border border-amber-500/50 text-amber-200'
-              : 'bg-slate-800 border border-slate-700 text-slate-300'
+              ? 'bg-primary/10 border border-primary/40 text-primary-soft'
+              : 'bg-white/5 border border-white/10 text-background/80'
           }`}>
-            📝 {order.order_notes[0].note}
+            <StickyNote className="h-3.5 w-3.5 shrink-0 mt-0.5" /> <span>{order.order_notes[0].note}</span>
           </div>
         )}
       </CardContent>
 
-      <CardFooter className="p-3 bg-slate-950/70 border-t border-slate-800">
+      <CardFooter className="p-3 bg-black/20 border-t border-white/10">
         <Button
           onClick={onPrimaryAction}
           disabled={isUpdating}
-          className={`w-full font-bold text-xs h-11 rounded-2xl shadow-lg transition-all ${
-            accentColor === 'amber'
-              ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20'
-              : accentColor === 'blue'
-              ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/20'
-              : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/20'
+          className={`w-full font-bold text-xs h-11 rounded-lg transition-all ${
+            accentColor === 'emerald'
+              ? 'bg-leaf hover:bg-leaf/90 text-background'
+              : 'bg-primary hover:bg-primary-deep text-primary-foreground'
           }`}
         >
           {isUpdating ? 'Updating Status...' : primaryActionText}

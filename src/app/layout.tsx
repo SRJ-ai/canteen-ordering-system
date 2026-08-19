@@ -1,26 +1,34 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
+import { Hanken_Grotesk, Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/context/AuthContext";
 import { DemoSwitcherDock } from "@/components/common/DemoSwitcherDock";
 import { ActiveOrderFloatTracker } from "@/components/customer/ActiveOrderFloatTracker";
 
-const sans = Plus_Jakarta_Sans({
+// Body — a warm, legible grotesk workhorse
+const sans = Hanken_Grotesk({
   subsets: ["latin"],
   variable: "--font-sans",
   weight: ["400", "500", "600", "700", "800"],
 });
 
-const serif = Playfair_Display({
+// Display — the menu-board headline voice
+const display = Bricolage_Grotesque({
   subsets: ["latin"],
-  variable: "--font-serif",
-  weight: ["400", "600", "700"],
-  style: ["normal", "italic"],
+  variable: "--font-display",
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+// Numerals — prices, tokens, timers
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const viewport: Viewport = {
-  themeColor: "#f97316",
+  themeColor: "#F5A312",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -131,7 +139,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans antialiased", sans.variable, serif.variable)}>
+    <html lang="en" className={cn("font-sans antialiased", sans.variable, display.variable, mono.variable)}>
       <head>
         <link rel="icon" href="/canteen-ordering-system/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/canteen-ordering-system/apple-icon.svg" />
@@ -140,7 +148,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className={cn("min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-orange-500 selection:text-white")}>
+      <body className={cn("min-h-screen bg-background text-foreground font-sans selection:bg-marigold selection:text-ink")}>
         <AuthProvider>
           {children}
           <ActiveOrderFloatTracker />

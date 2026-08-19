@@ -2,116 +2,113 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingBag, Plus, Minus, Trash2, ArrowRight, ArrowLeft, UtensilsCrossed } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, ArrowRight, ArrowLeft, UtensilsCrossed } from 'lucide-react';
 
 export default function CartPage() {
-  const router = useRouter();
-  const { items, itemCount, subtotal, tax, total, updateQuantity, removeItem, clearCart, tableInfo, isLoaded } = useCart();
+  const { items, itemCount, subtotal, tax, total, updateQuantity, clearCart, tableInfo, isLoaded } = useCart();
 
   if (!isLoaded) {
     return (
-      <div className="max-w-md mx-auto py-24 text-center text-xs text-muted-foreground font-medium">
-        Loading cart items...
+      <div className="mx-auto max-w-md py-24 text-center text-xs font-medium text-muted-foreground">
+        Loading your tray...
       </div>
     );
   }
 
   if (items.length === 0) {
     return (
-      <div className="max-w-md mx-auto py-12 px-4 text-center space-y-4">
-        <div className="bg-orange-50 text-primary w-20 h-20 rounded-full flex items-center justify-center mx-auto shadow-inner">
+      <div className="mx-auto max-w-md space-y-4 px-4 py-12 text-center">
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary/15 text-primary-deep">
           <UtensilsCrossed className="h-10 w-10" />
         </div>
-        <h1 className="text-2xl font-extrabold text-slate-900">Your Cart is Empty</h1>
+        <h1 className="font-display text-2xl font-extrabold text-ink">Your tray is empty</h1>
         <p className="text-sm text-muted-foreground">
-          You haven&apos;t added any delicious food items to your cart yet.
+          You haven&rsquo;t added any dishes yet. Browse the canteen specials to get started.
         </p>
         <Link href="/menu">
-          <Button className="mt-2 bg-primary hover:bg-primary/90 text-white font-bold rounded-2xl px-6">
-            Browse Menu Specials
-          </Button>
+          <Button className="mt-2 rounded-lg px-6 font-bold">Browse the menu</Button>
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="mx-auto max-w-2xl space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <ShoppingBag className="h-7 w-7 text-primary" /> Review Your Order
+          <h1 className="flex items-center gap-2 font-display text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+            <ShoppingBag className="h-7 w-7 text-primary-deep" /> Review your order
           </h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            {tableInfo?.tableNumber ? `Dine-in at ${tableInfo.tableNumber}` : 'Quick Counter Pickup'}
+          <p className="mt-1 text-xs text-muted-foreground">
+            {tableInfo?.tableNumber ? `Dine-in at ${tableInfo.tableNumber}` : 'Quick counter pickup'}
           </p>
         </div>
-        <Button variant="ghost" size="sm" onClick={clearCart} className="text-xs text-muted-foreground hover:text-destructive">
-          Clear Cart
+        <Button variant="ghost" size="sm" onClick={clearCart} className="text-xs text-muted-foreground hover:text-chutney">
+          Clear tray
         </Button>
       </div>
 
-      {/* Items list */}
-      <Card className="rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden bg-white">
-        <CardHeader className="bg-slate-50/70 border-b border-slate-100 py-3.5 px-6">
-          <CardTitle className="text-sm font-bold text-slate-800 flex items-center justify-between">
-            <span>Selected Items ({itemCount})</span>
-            <Link href="/menu" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">
-              <Plus className="h-3 w-3" /> Add more items
+      {/* Items */}
+      <Card className="tray-card overflow-hidden">
+        <CardHeader className="border-b border-border bg-secondary/60 px-6 py-3.5">
+          <CardTitle className="flex items-center justify-between font-display text-sm font-bold text-ink">
+            <span>Selected items (<span className="numeric">{itemCount}</span>)</span>
+            <Link href="/menu" className="flex items-center gap-1 text-xs font-semibold text-primary-deep hover:underline">
+              <Plus className="h-3 w-3" /> Add more
             </Link>
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6 divide-y divide-slate-100">
+        <CardContent className="divide-y divide-border p-6">
           {items.map((item) => (
-            <div key={item.id} className="py-4 first:pt-0 last:pb-0 flex items-start justify-between gap-4">
-              <div className="space-y-1.5 flex-1">
+            <div key={item.id} className="flex items-start justify-between gap-4 py-4 first:pt-0 last:pb-0">
+              <div className="flex-1 space-y-1.5">
                 <div className="flex items-center gap-2">
                   <span className="veg-indicator"><span className="veg-indicator-dot"></span></span>
-                  <span className="font-bold text-sm text-slate-900">{item.name}</span>
+                  <span className="font-display text-sm font-bold text-ink">{item.name}</span>
                 </div>
-                <div className="text-xs font-semibold text-primary">
+                <div className="numeric text-xs font-semibold text-primary-deep">
                   ₹{(item.basePrice + item.addons.reduce((s, a) => s + a.price, 0)).toFixed(2)} each
                 </div>
 
                 {item.addons.length > 0 && (
                   <div className="flex flex-wrap gap-1 pt-1">
                     {item.addons.map((a) => (
-                      <Badge key={a.id} variant="secondary" className="text-[10px] bg-slate-100 text-slate-700">
-                        +{a.name} (₹{a.price})
+                      <Badge key={a.id} variant="secondary" className="border border-border bg-secondary text-[10px] text-ink">
+                        +{a.name} (<span className="numeric">₹{a.price}</span>)
                       </Badge>
                     ))}
                   </div>
                 )}
 
                 {item.notes && (
-                  <p className="text-xs text-muted-foreground italic bg-slate-50 p-2 rounded-lg border border-dashed border-slate-200">
+                  <p className="rounded-lg border border-dashed border-border bg-secondary/60 p-2 text-xs italic text-muted-foreground">
                     &ldquo;{item.notes}&rdquo;
                   </p>
                 )}
               </div>
 
-              {/* Quantity Controls & Subtotal */}
               <div className="flex flex-col items-end gap-2">
-                <span className="font-extrabold text-sm text-slate-900">
+                <span className="numeric text-sm font-extrabold text-ink">
                   ₹{item.itemTotalPrice.toFixed(2)}
                 </span>
-                <div className="flex items-center gap-1.5 bg-slate-100 rounded-xl p-1 border">
+                <div className="flex items-center gap-1.5 rounded-lg border border-border bg-secondary p-1">
                   <button
                     onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                    className="p-1 rounded-lg hover:bg-white text-slate-600 transition"
+                    className="rounded-md p-1 text-ink transition hover:bg-card"
+                    aria-label="Remove one"
                   >
                     <Minus className="h-3.5 w-3.5" />
                   </button>
-                  <span className="font-bold text-xs min-w-[20px] text-center">{item.quantity}</span>
+                  <span className="numeric min-w-[20px] text-center text-xs font-bold">{item.quantity}</span>
                   <button
                     onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                    className="p-1 rounded-lg hover:bg-white text-slate-600 transition"
+                    className="rounded-md p-1 text-ink transition hover:bg-card"
+                    aria-label="Add one"
                   >
                     <Plus className="h-3.5 w-3.5" />
                   </button>
@@ -122,39 +119,39 @@ export default function CartPage() {
         </CardContent>
       </Card>
 
-      {/* Bill Breakdown */}
-      <Card className="rounded-3xl border border-slate-200/80 shadow-xs bg-white p-6 space-y-3">
-        <h3 className="text-sm font-bold text-slate-800">Bill Breakdown</h3>
-        <div className="space-y-2 text-sm text-slate-600">
+      {/* Bill */}
+      <Card className="tray-card space-y-3 p-6">
+        <h3 className="font-display text-sm font-bold text-ink">Bill breakdown</h3>
+        <div className="space-y-2 text-sm text-muted-foreground">
           <div className="flex justify-between">
-            <span>Item Subtotal</span>
-            <span className="font-medium text-slate-900">₹{subtotal.toFixed(2)}</span>
+            <span>Item subtotal</span>
+            <span className="numeric font-medium text-ink">₹{subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
             <span>GST (5%)</span>
-            <span className="font-medium text-slate-900">₹{tax.toFixed(2)}</span>
+            <span className="numeric font-medium text-ink">₹{tax.toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
-            <span>Delivery / Packaging</span>
-            <span className="font-medium text-emerald-600">FREE</span>
+            <span>Packaging</span>
+            <span className="font-semibold text-leaf">FREE</span>
           </div>
-          <div className="border-t border-slate-200 pt-3 flex justify-between items-center text-base font-bold text-slate-900">
-            <span>To Pay</span>
-            <span className="text-2xl font-extrabold text-primary">₹{total.toFixed(2)}</span>
+          <div className="flex items-center justify-between border-t border-border pt-3 text-base font-bold text-ink">
+            <span>To pay</span>
+            <span className="numeric text-2xl font-extrabold text-primary-deep">₹{total.toFixed(2)}</span>
           </div>
         </div>
       </Card>
 
-      {/* Action Buttons */}
+      {/* Actions */}
       <div className="flex items-center justify-between gap-4 pt-2">
         <Link href="/menu" className="w-1/3">
-          <Button variant="outline" className="w-full rounded-2xl h-12 text-sm font-semibold">
-            <ArrowLeft className="h-4 w-4 mr-1.5" /> Back
+          <Button variant="outline" className="h-12 w-full rounded-lg border-ink/15 bg-card text-sm font-semibold text-ink hover:bg-secondary">
+            <ArrowLeft className="mr-1.5 h-4 w-4" /> Back
           </Button>
         </Link>
         <Link href="/checkout" className="w-2/3">
-          <Button className="w-full bg-primary hover:bg-primary/90 text-white font-bold rounded-2xl h-12 text-base shadow-lg flex items-center justify-center gap-2">
-            Proceed to Payment <ArrowRight className="h-4 w-4" />
+          <Button className="flex h-12 w-full items-center justify-center gap-2 rounded-lg text-base font-bold shadow-sm">
+            Proceed to payment <ArrowRight className="h-4 w-4" />
           </Button>
         </Link>
       </div>

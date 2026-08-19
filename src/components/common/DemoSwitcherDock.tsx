@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Compass,
   QrCode,
@@ -13,55 +12,64 @@ import {
   LayoutDashboard,
   ShoppingBag,
   ShieldCheck,
-  UserCheck,
   X,
   Sparkles,
   ChevronUp,
 } from 'lucide-react';
+
+const PORTALS = [
+  { href: '/t/qr_tbl_01_8fK29xQm7P7wL9a1', icon: QrCode, label: 'Table 01 scan' },
+  { href: '/menu', icon: Utensils, label: 'Student menu' },
+  { href: '/kitchen', icon: ChefHat, label: 'Kitchen KDS' },
+  { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Admin stats' },
+  { href: '/admin/orders', icon: ShoppingBag, label: 'Live orders' },
+  { href: '/admin/tables', icon: ShieldCheck, label: 'QR manager' },
+];
 
 export function DemoSwitcherDock() {
   const [isOpen, setIsOpen] = useState(false);
   const { user, profile, role, quickLogin, logout } = useAuth();
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 font-sans print:hidden">
+    <div className="fixed bottom-4 right-4 z-50 print:hidden">
       {!isOpen ? (
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 bg-slate-900/95 hover:bg-slate-900 text-white px-3.5 py-2.5 rounded-full shadow-2xl border border-slate-700/80 backdrop-blur-md transition-all hover:scale-105 group"
+          className="group flex items-center gap-2 rounded-full border border-white/10 bg-ink px-3.5 py-2.5 text-background shadow-2xl transition-all hover:scale-105"
         >
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></div>
-          <Compass className="h-4 w-4 text-orange-400 group-hover:rotate-45 transition-transform" />
-          <span className="text-xs font-extrabold tracking-tight">GPREC Portals</span>
-          <ChevronUp className="h-3.5 w-3.5 text-slate-400" />
+          <span className="h-2 w-2 rounded-full bg-leaf motion-safe:animate-ping"></span>
+          <Compass className="h-4 w-4 text-primary transition-transform group-hover:rotate-45" />
+          <span className="font-display text-xs font-extrabold tracking-tight">GPREC Portals</span>
+          <ChevronUp className="h-3.5 w-3.5 text-background/50" />
         </button>
       ) : (
-        <div className="bg-slate-950 text-white p-5 rounded-3xl border border-slate-800 shadow-2xl max-w-sm w-[340px] space-y-4 backdrop-blur-xl animate-in slide-in-from-bottom-5">
+        <div className="w-[340px] max-w-sm space-y-4 rounded-xl border border-white/10 bg-ink p-5 text-background shadow-2xl animate-in slide-in-from-bottom-5">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
-              <div className="bg-primary/20 text-primary p-1.5 rounded-xl">
+              <div className="rounded-lg bg-primary/20 p-1.5 text-primary">
                 <Compass className="h-4 w-4" />
               </div>
               <div>
-                <h4 className="font-extrabold text-xs text-white">GPREC Quick Portal Switcher</h4>
-                <p className="text-[10px] text-slate-400">Jump between roles & live terminals</p>
+                <h4 className="font-display text-xs font-extrabold text-background">Quick portal switcher</h4>
+                <p className="text-[10px] text-background/60">Jump between roles and live terminals</p>
               </div>
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+              className="rounded-lg p-1 text-background/60 hover:bg-white/10 hover:text-background"
+              aria-label="Close"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
 
-          {/* Active Identity */}
-          <div className="p-3 bg-slate-900/80 rounded-2xl border border-slate-800 flex items-center justify-between">
+          {/* Active identity */}
+          <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-3">
             <div className="overflow-hidden">
-              <span className="text-[10px] uppercase font-mono text-slate-400 block">Current User</span>
-              <div className="text-xs font-bold text-slate-200 truncate">
-                {user ? `${profile?.first_name || 'Member'} (${role})` : 'Guest / Unauthenticated'}
+              <span className="block text-[10px] font-semibold uppercase tracking-wider text-background/50">Current user</span>
+              <div className="truncate text-xs font-bold text-background">
+                {user ? `${profile?.first_name || 'Member'} (${role})` : 'Guest / unauthenticated'}
               </div>
             </div>
             {user ? (
@@ -69,109 +77,60 @@ export function DemoSwitcherDock() {
                 variant="ghost"
                 size="sm"
                 onClick={() => logout()}
-                className="text-[10px] h-6 px-2 text-rose-400 hover:bg-rose-950/40"
+                className="h-6 px-2 text-[10px] text-chutney hover:bg-chutney/15"
               >
-                Sign Out
+                Sign out
               </Button>
             ) : (
               <Link href="/auth/login">
-                <Button size="sm" className="text-[10px] h-6 px-2 bg-primary text-white">
-                  Log In
+                <Button size="sm" className="h-6 px-2 text-[10px]">
+                  Log in
                 </Button>
               </Link>
             )}
           </div>
 
-          {/* Portal Navigation Links */}
+          {/* Portals */}
           <div className="space-y-1.5">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1">
-              Live System Portals:
+            <span className="px-1 text-[10px] font-bold uppercase tracking-wider text-background/50">
+              Live system portals
             </span>
 
             <div className="grid grid-cols-2 gap-1.5">
-              <Link
-                href="/t/qr_tbl_01_8fK29xQm7P7wL9a1"
-                onClick={() => setIsOpen(false)}
-                className="p-2.5 bg-slate-900 hover:bg-slate-800 rounded-xl border border-slate-800/80 flex items-center gap-2 transition text-xs font-bold text-slate-200 hover:text-orange-400"
-              >
-                <QrCode className="h-4 w-4 text-orange-400 shrink-0" />
-                <span className="truncate">Table 01 Scan</span>
-              </Link>
-
-              <Link
-                href="/menu"
-                onClick={() => setIsOpen(false)}
-                className="p-2.5 bg-slate-900 hover:bg-slate-800 rounded-xl border border-slate-800/80 flex items-center gap-2 transition text-xs font-bold text-slate-200 hover:text-emerald-400"
-              >
-                <Utensils className="h-4 w-4 text-emerald-400 shrink-0" />
-                <span className="truncate">Student Menu</span>
-              </Link>
-
-              <Link
-                href="/kitchen"
-                onClick={() => setIsOpen(false)}
-                className="p-2.5 bg-slate-900 hover:bg-slate-800 rounded-xl border border-slate-800/80 flex items-center gap-2 transition text-xs font-bold text-slate-200 hover:text-amber-400"
-              >
-                <ChefHat className="h-4 w-4 text-amber-400 shrink-0" />
-                <span className="truncate">Kitchen KDS</span>
-              </Link>
-
-              <Link
-                href="/admin/dashboard"
-                onClick={() => setIsOpen(false)}
-                className="p-2.5 bg-slate-900 hover:bg-slate-800 rounded-xl border border-slate-800/80 flex items-center gap-2 transition text-xs font-bold text-slate-200 hover:text-blue-400"
-              >
-                <LayoutDashboard className="h-4 w-4 text-blue-400 shrink-0" />
-                <span className="truncate">Admin Stats</span>
-              </Link>
-
-              <Link
-                href="/admin/orders"
-                onClick={() => setIsOpen(false)}
-                className="p-2.5 bg-slate-900 hover:bg-slate-800 rounded-xl border border-slate-800/80 flex items-center gap-2 transition text-xs font-bold text-slate-200 hover:text-rose-400"
-              >
-                <ShoppingBag className="h-4 w-4 text-rose-400 shrink-0" />
-                <span className="truncate">Live Orders</span>
-              </Link>
-
-              <Link
-                href="/admin/tables"
-                onClick={() => setIsOpen(false)}
-                className="p-2.5 bg-slate-900 hover:bg-slate-800 rounded-xl border border-slate-800/80 flex items-center gap-2 transition text-xs font-bold text-slate-200 hover:text-cyan-400"
-              >
-                <ShieldCheck className="h-4 w-4 text-cyan-400 shrink-0" />
-                <span className="truncate">QR Manager</span>
-              </Link>
+              {PORTALS.map(({ href, icon: Icon, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 p-2.5 text-xs font-bold text-background/90 transition hover:border-primary/40 hover:bg-white/10 hover:text-primary"
+                >
+                  <Icon className="h-4 w-4 shrink-0 text-primary" />
+                  <span className="truncate">{label}</span>
+                </Link>
+              ))}
             </div>
           </div>
 
-          {/* Quick Demo Logins */}
-          <div className="pt-2 border-t border-slate-800 space-y-1.5">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 px-1 flex items-center gap-1">
-              <Sparkles className="h-3 w-3" /> One-Click Role Switch:
+          {/* Role switch */}
+          <div className="space-y-1.5 border-t border-white/10 pt-2">
+            <span className="flex items-center gap-1 px-1 text-[10px] font-bold uppercase tracking-wider text-primary-soft">
+              <Sparkles className="h-3 w-3" /> One-click role switch
             </span>
             <div className="grid grid-cols-3 gap-1.5">
-              <button
-                type="button"
-                onClick={() => { quickLogin('ADMIN'); setIsOpen(false); }}
-                className="p-1.5 bg-slate-900 hover:bg-emerald-950/60 border border-slate-800 hover:border-emerald-500/40 rounded-xl text-center text-[10px] font-bold text-emerald-300"
-              >
-                Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => { quickLogin('KITCHEN'); setIsOpen(false); }}
-                className="p-1.5 bg-slate-900 hover:bg-amber-950/60 border border-slate-800 hover:border-amber-500/40 rounded-xl text-center text-[10px] font-bold text-amber-300"
-              >
-                Chef
-              </button>
-              <button
-                type="button"
-                onClick={() => { quickLogin('STUDENT'); setIsOpen(false); }}
-                className="p-1.5 bg-slate-900 hover:bg-blue-950/60 border border-slate-800 hover:border-blue-500/40 rounded-xl text-center text-[10px] font-bold text-blue-300"
-              >
-                Student
-              </button>
+              {[
+                { role: 'ADMIN' as const, label: 'Admin' },
+                { role: 'KITCHEN' as const, label: 'Chef' },
+                { role: 'STUDENT' as const, label: 'Student' },
+              ].map(({ role: r, label }) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => { quickLogin(r); setIsOpen(false); }}
+                  className="rounded-lg border border-white/10 bg-white/5 p-1.5 text-center text-[10px] font-bold text-background/90 transition hover:border-primary/50 hover:bg-primary/15 hover:text-primary-soft"
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
         </div>

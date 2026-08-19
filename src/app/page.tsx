@@ -1,450 +1,428 @@
 'use client';
 
+/*
+  ============================================================
+  STEEL & MARIGOLD — Landing (Persuade)
+  ------------------------------------------------------------
+  THESIS: A campus canteen menu-board made digital. Refuses the
+    dark-glass SaaS hero; leads with real food and real prices.
+  OWN-WORLD: Warm steel-tray ground, one marigold accent, chutney
+    red for heat, banana-leaf green for veg. Bricolage display,
+    Hanken body, JetBrains mono for every price/token/timer.
+  STORY: Student/faculty sees hot food + a table QR path, believes
+    it is fast and real, scans a table or opens the menu.
+  FIRST VIEWPORT: Split hero. Left ink headline + two CTAs; right a
+    bright idli-vada-sambar plate framed as a steel tray. Primary
+    action (Scan Table 01) top-left, visible without scroll.
+  FORM: Menu board / steel tiffin tray. Zero glassmorphism.
+  ============================================================
+*/
+
 import React from 'react';
 import Link from 'next/link';
 import {
-  Utensils,
   QrCode,
   ChefHat,
   ShieldCheck,
-  ArrowRight,
-  Sparkles,
-  CheckCircle2,
-  Clock,
-  Star,
-  Zap,
   GraduationCap,
   Volume2,
+  Zap,
+  Star,
+  ArrowRight,
+  Soup,
+  Clock,
   Receipt,
-  Printer,
-  ChevronRight,
-  Flame,
-  Layers,
-  Compass,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 
-const CAMPUS_PARTNERS = [
-  'GPREC Computer Science',
-  'Electronics & Communication',
-  'Electrical & Electronics',
-  'Mechanical Engineering',
-  'Civil Engineering',
-  'Faculty Lounge VIP',
-  'GPREC Main Food Court',
-  'Campus Bakery & Cafe',
-  'Science & Humanities',
-  'GPREC Student Council',
+const U = (id: string, w = 1200) =>
+  `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=70`;
+
+const IMG = {
+  hero: '1630383249896-424e482df921', // idli, vada, sambar, chutneys
+  dosa: '1668236543090-82eba5ee5976', // masala dosa
+  idli: '1589301760014-d929f3979dbc', // idli on banana leaf
+  paneer: '1631452180519-c014fe946bc7', // paneer butter masala
+  tikka: '1567188040759-fb8a883dc6d8', // paneer tikka
+  samosa: '1601050690597-df0568f70950', // samosa
+  pav: '1596797038530-2c107229654b', // pav bhaji
+};
+
+const MENU_PREVIEW = [
+  { name: 'Masala Dosa', price: 60, img: IMG.dosa, tag: 'Tiffins', note: 'Crisp, potato masala, 3 chutneys' },
+  { name: 'Idli Vada Combo', price: 45, img: IMG.hero, tag: 'Breakfast', note: 'Two idli, one vada, hot sambar' },
+  { name: 'Paneer Butter Masala', price: 110, img: IMG.paneer, tag: 'Meals', note: 'Copper kadai, jeera rice, papad' },
+  { name: 'Paneer Tikka', price: 120, img: IMG.tikka, tag: 'Grill', note: 'Char-grilled, sizzler plate' },
+  { name: 'Samosa (2 pc)', price: 30, img: IMG.samosa, tag: 'Snacks', note: 'Fresh fried, mint chutney' },
+  { name: 'Pav Bhaji', price: 70, img: IMG.pav, tag: 'Chaat', note: 'Buttered pav, spiced bhaji' },
+];
+
+const DEPARTMENTS = [
+  'Computer Science', 'Electronics & Communication', 'Electrical & Electronics',
+  'Mechanical', 'Civil', 'Faculty Lounge', 'Central Kitchen',
+  'Campus Bakery', 'Science & Humanities', 'Student Council',
+];
+
+const CAPABILITIES = [
+  { icon: QrCode, title: 'Table QR sessions', body: 'Scan the tent card to bind to Table 01 to 10. No app install, works in any phone browser.' },
+  { icon: GraduationCap, title: 'Faculty fast-track', body: 'A priority lane lets staff jump the general queue during short lecture breaks.' },
+  { icon: ChefHat, title: 'FCFS kitchen board', body: 'A strict first-come-first-serve Kanban with wait timers and audio chimes, built for a wall tablet.' },
+  { icon: Zap, title: 'UPI in seconds', body: 'A sandbox UPI QR with a five-minute countdown and one-tap success or decline.' },
+  { icon: Volume2, title: 'Voice pickup calls', body: 'The board speaks ready token numbers aloud, so nobody crowds the counter.' },
+  { icon: ShieldCheck, title: 'Admin price controls', body: 'Add dishes, flip out-of-stock, and audit cancellations from one hub in real time.' },
+];
+
+const STEPS = [
+  { verb: 'Scan', body: 'Point your camera at the QR tent card on any food-court table.' },
+  { verb: 'Order & pay', body: 'Add toppings, pick faculty priority if staff, settle over UPI.' },
+  { verb: 'Kitchen cooks', body: 'Your token joins the FCFS board and chefs cook in strict order.' },
+  { verb: 'Pickup call', body: 'The board calls your number aloud. Collect a hot plate, rate it.' },
 ];
 
 const TESTIMONIALS = [
   {
-    quote:
-      'The VIP Faculty fast-track queue allows our department professors to enjoy a fresh hot meal between lecture periods without losing precious prep time.',
-    author: 'Dr. R. K. Sharma',
-    role: 'Professor & Head of CSE',
-    dept: 'Computer Science Department',
-    rating: 5,
+    quote: 'The faculty fast-track lets our professors eat a fresh hot meal between lectures without losing prep time.',
+    author: 'Dr. R. K. Sharma', role: 'Head of CSE',
   },
   {
-    quote:
-      'Ordering straight from Table 04 with instant UPI payment and tracking the live prep timer on my phone completely changed our canteen experience during peak lunch break.',
-    author: 'Sneha Reddy',
-    role: 'Final Year Student',
-    dept: 'B.Tech ECE',
-    rating: 5,
+    quote: 'Ordering from Table 04 with UPI and watching the live prep timer changed our whole lunch break.',
+    author: 'Sneha Reddy', role: 'Final Year, ECE',
   },
   {
-    quote:
-      'The First-Come-First-Serve KDS terminal with voice announcements eliminated chaotic shouting at the pickup counter and keeps all our cooking lanes organized.',
-    author: 'Chef Murthy',
-    role: 'Head Culinary Chef',
-    dept: 'GPREC Central Kitchen',
-    rating: 5,
+    quote: 'The voice-calling board ended the shouting at the counter and keeps every cooking lane in order.',
+    author: 'Chef Murthy', role: 'Central Kitchen',
   },
 ];
 
+function VegDot() {
+  return (
+    <span className="veg-indicator" aria-label="Vegetarian" title="Vegetarian">
+      <span className="veg-indicator-dot" />
+    </span>
+  );
+}
+
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-orange-500 selection:text-white font-sans">
-      {/* 1. Floating Glass Navigation Bar */}
-      <header className="sticky top-4 z-40 px-4 sm:px-6 max-w-6xl mx-auto w-full">
-        <nav className="bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 rounded-3xl px-4 sm:px-6 h-16 flex items-center justify-between shadow-2xl shadow-black/40">
-          <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-orange-500 to-amber-500 text-slate-950 p-2 rounded-2xl font-bold shadow-md shadow-orange-500/20">
-              <Utensils className="h-5 w-5" />
-            </div>
-            <div>
-              <span className="font-extrabold text-base sm:text-lg tracking-tight text-white block leading-none">
-                GPREC <span className="text-orange-400">Food Court</span>
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
+      {/* NAV — single line, solid warm-white, hairline */}
+      <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur-sm">
+        <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+          <Link href="/" className="flex items-center gap-2.5">
+            <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground">
+              <Soup className="h-5 w-5" />
+            </span>
+            <span className="leading-none">
+              <span className="block font-display text-[17px] font-extrabold tracking-tight text-ink">
+                GPREC Food Court
               </span>
-              <span className="text-[10px] text-slate-400 font-mono tracking-wider uppercase">
-                Campus Dining System
+              <span className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                Kurnool Campus
               </span>
-            </div>
-          </div>
+            </span>
+          </Link>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Link href="/menu" className="hidden sm:inline-flex">
+              <Button variant="ghost" size="sm" className="font-semibold text-ink">Menu</Button>
+            </Link>
             <Link href="/kitchen" className="hidden sm:inline-flex">
-              <Button variant="ghost" size="sm" className="text-xs text-slate-300 hover:text-white rounded-xl">
-                <ChefHat className="h-4 w-4 mr-1.5 text-amber-400" /> Kitchen KDS
-              </Button>
+              <Button variant="ghost" size="sm" className="font-semibold text-ink">Kitchen</Button>
             </Link>
-
-            <Link href="/admin/dashboard" className="hidden sm:inline-flex">
-              <Button variant="ghost" size="sm" className="text-xs text-slate-300 hover:text-white rounded-xl">
-                <ShieldCheck className="h-4 w-4 mr-1.5 text-emerald-400" /> Admin
-              </Button>
+            <Link href="/admin/dashboard" className="hidden md:inline-flex">
+              <Button variant="ghost" size="sm" className="font-semibold text-ink">Admin</Button>
             </Link>
-
-            <Link href="/menu">
-              <Button className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-slate-950 font-extrabold rounded-2xl text-xs px-4 sm:px-5 h-9 shadow-lg shadow-orange-500/20">
-                Browse Menu &rarr;
+            <Link href="/t/qr_tbl_01_8fK29xQm7P7wL9a1">
+              <Button size="sm" className="btn-marigold h-9 px-4 text-sm">
+                <QrCode className="mr-1.5 h-4 w-4" /> Scan a table
               </Button>
             </Link>
           </div>
         </nav>
       </header>
 
-      {/* 2. Hero Section with Cinematic Editorial Layout */}
-      <main className="container mx-auto px-4 max-w-6xl pt-12 sm:pt-20 pb-16 space-y-24">
-        <section className="relative text-center sm:text-left max-w-5xl mx-auto space-y-8">
-          {/* Proof Badge */}
-          <div className="inline-flex items-center gap-2 bg-slate-900/90 border border-slate-800 px-4 py-1.5 rounded-full shadow-lg backdrop-blur-md">
-            <div className="flex -space-x-1">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="w-5 h-5 rounded-full bg-gradient-to-tr from-orange-500 to-amber-400 border border-slate-950 flex items-center justify-center text-[9px] font-black text-slate-950"
-                >
-                  ★
-                </div>
-              ))}
-            </div>
-            <span className="text-xs font-bold text-slate-200">
-              Trusted by 1,200+ GPREC Students &amp; Faculty Daily
-            </span>
-          </div>
-
-          {/* Editorial Display Headline */}
-          <div className="space-y-4">
-            <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-[1.1]">
-              Next-Generation{' '}
-              <span className="font-serif italic font-normal text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-orange-300 to-amber-200">
-                Campus Dining &amp; Culinary
-              </span>{' '}
-              Operations.
+      <main className="flex-1">
+        {/* HERO — asymmetric split */}
+        <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 pt-10 pb-14 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:gap-14 lg:pt-16 lg:pb-20">
+          <div className="max-w-xl">
+            <p className="text-[13px] font-bold uppercase tracking-[0.16em] text-chutney">
+              G. Pulla Reddy Engineering College
+            </p>
+            <h1 className="mt-4 text-balance font-display text-4xl font-extrabold leading-[1.04] tracking-tight text-ink sm:text-5xl lg:text-[3.35rem]">
+              Hot campus meals, ordered from your table.
             </h1>
-            <p className="text-slate-400 text-base sm:text-xl max-w-2xl leading-relaxed">
-              Dine from physical campus tables with instant QR sessions, fast-track faculty orders, track tickets live on kitchen displays, and settle bills seamlessly via UPI.
+            <p className="mt-5 max-w-md text-base leading-relaxed text-muted-foreground sm:text-lg">
+              Scan the tent card, pay by UPI, and track your token on the live kitchen board. Ready in under seven minutes.
             </p>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link href="/t/qr_tbl_01_8fK29xQm7P7wL9a1">
+                <Button size="lg" className="btn-marigold h-12 px-6 text-base">
+                  <QrCode className="mr-2 h-5 w-5" /> Scan Table 01
+                </Button>
+              </Link>
+              <Link href="/menu">
+                <Button size="lg" variant="outline" className="h-12 border-ink/20 bg-card px-5 text-base font-semibold text-ink hover:bg-secondary">
+                  See today&rsquo;s menu <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
           </div>
 
-          {/* Hero CTAs */}
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 pt-2">
-            <Link href="/t/qr_tbl_01_8fK29xQm7P7wL9a1">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-slate-950 font-black rounded-2xl px-7 h-14 shadow-2xl shadow-orange-500/25 text-sm sm:text-base flex items-center gap-2.5 transition-transform hover:scale-105 active:scale-95"
-              >
-                <QrCode className="h-5 w-5" /> Simulate Table 01 Scan
-              </Button>
-            </Link>
-
-            <Link href="/kitchen">
-              <Button
-                size="lg"
-                variant="outline"
-                className="bg-slate-900/90 text-slate-200 border-slate-700 hover:bg-slate-800/90 rounded-2xl px-6 h-14 font-bold text-sm sm:text-base flex items-center gap-2.5 shadow-lg backdrop-blur-md"
-              >
-                <ChefHat className="h-5 w-5 text-amber-400" /> Open Kitchen KDS Board
-              </Button>
-            </Link>
-          </div>
-
-          {/* Glass Metrics Ribbon */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6">
-            <div className="bg-slate-900/60 border border-slate-800/80 p-4 rounded-3xl backdrop-blur-md">
-              <span className="text-2xl sm:text-3xl font-black text-white block">0 ms</span>
-              <span className="text-[11px] text-slate-400 font-medium">Optimistic Ticket Sync</span>
+          {/* Steel-tray framed hero plate */}
+          <div className="relative">
+            <div className="tray-card overflow-hidden p-2.5">
+              <img
+                src={U(IMG.hero, 900)}
+                alt="Idli, medu vada and sambar with fresh chutneys on a plate"
+                width={900}
+                height={640}
+                loading="eager"
+                className="aspect-[7/5] w-full rounded-md object-cover"
+              />
             </div>
-            <div className="bg-slate-900/60 border border-slate-800/80 p-4 rounded-3xl backdrop-blur-md">
-              <span className="text-2xl sm:text-3xl font-black text-emerald-400 block">&lt; 7 mins</span>
-              <span className="text-[11px] text-slate-400 font-medium">Average Kitchen Prep</span>
-            </div>
-            <div className="bg-slate-900/60 border border-slate-800/80 p-4 rounded-3xl backdrop-blur-md">
-              <span className="text-2xl sm:text-3xl font-black text-amber-400 block">100%</span>
-              <span className="text-[11px] text-slate-400 font-medium">FCFS Queue Integrity</span>
-            </div>
-            <div className="bg-slate-900/60 border border-slate-800/80 p-4 rounded-3xl backdrop-blur-md">
-              <span className="text-2xl sm:text-3xl font-black text-orange-400 block">10 Tables</span>
-              <span className="text-[11px] text-slate-400 font-medium">Vector QR Tent Cards</span>
+            {/* Honest product content, not a fake screenshot */}
+            <div className="absolute -bottom-5 -left-3 flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 shadow-lg sm:-left-6">
+              <VegDot />
+              <div className="leading-tight">
+                <p className="font-display text-sm font-bold text-ink">Idli Vada Combo</p>
+                <p className="text-[11px] text-muted-foreground">Table 01 &middot; ready in <span className="numeric font-semibold text-leaf">6:12</span></p>
+              </div>
+              <span className="numeric ml-1 text-lg font-bold text-ink">₹45</span>
             </div>
           </div>
         </section>
 
-        {/* 3. Continuously Sliding Campus Collaboration Rail */}
-        <section aria-label="Campus Departments" className="space-y-3 overflow-hidden py-4 border-y border-slate-800/60">
-          <p className="text-[11px] font-bold text-center text-slate-500 uppercase tracking-widest">
-            Serving All G. Pulla Reddy Engineering College Departments
-          </p>
-          <div className="relative w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-            <div className="flex items-center gap-8 w-max animate-marquee whitespace-nowrap">
-              {[...CAMPUS_PARTNERS, ...CAMPUS_PARTNERS].map((partner, idx) => (
-                <div key={idx} className="flex items-center gap-3 text-xs sm:text-sm font-bold text-slate-400 hover:text-slate-200 transition-colors">
-                  <div className="w-1.5 h-1.5 rounded-full bg-orange-500"></div>
-                  <span>{partner}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* 4. Core Architecture Value Propositions (6 Refined Panels) */}
-        <section className="space-y-8">
-          <div className="text-center max-w-2xl mx-auto space-y-3">
-            <Badge className="bg-orange-500/10 text-orange-400 border border-orange-500/30 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-              <Layers className="h-3.5 w-3.5 mr-1" /> Complete Digital Dining Stack
-            </Badge>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Designed for Campus Scale &amp; Speed
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-400">
-              Built from scratch to eliminate long lunch lines, lost paper tokens, and order mixups.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Panel 1: QR Dine-in */}
-            <div className="bg-slate-900/60 border border-slate-800/80 rounded-3xl p-6 space-y-4 hover:border-orange-500/40 transition-all group backdrop-blur-md">
-              <div className="bg-orange-500/15 text-orange-400 p-3.5 rounded-2xl w-fit group-hover:scale-110 transition-transform">
-                <QrCode className="h-6 w-6" />
+        {/* STAT RIBBON — plain, hairline-divided, mono numerals */}
+        <section className="border-y border-border bg-card">
+          <div className="mx-auto grid max-w-6xl grid-cols-2 divide-x divide-border sm:grid-cols-4">
+            {[
+              { n: '< 7 min', l: 'Average prep time' },
+              { n: '10', l: 'Live QR tables' },
+              { n: '1,200+', l: 'Meals served daily' },
+              { n: '₹20', l: 'Filter coffee, still' },
+            ].map((s, i) => (
+              <div key={i} className="px-5 py-6 text-center sm:py-7">
+                <div className="numeric text-2xl font-extrabold text-ink sm:text-3xl">{s.n}</div>
+                <div className="mt-1 text-[12px] font-medium text-muted-foreground">{s.l}</div>
               </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-orange-400 transition-colors">
-                Instant Table QR Sessions
-              </h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Students scan the table tent card to automatically bind to Table 01–10. No native mobile app install required.
-              </p>
-            </div>
-
-            {/* Panel 2: Faculty Priority */}
-            <div className="bg-slate-900/60 border border-slate-800/80 rounded-3xl p-6 space-y-4 hover:border-amber-500/40 transition-all group backdrop-blur-md">
-              <div className="bg-amber-500/15 text-amber-400 p-3.5 rounded-2xl w-fit group-hover:scale-110 transition-transform">
-                <GraduationCap className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-amber-400 transition-colors">
-                Faculty Priority Fast-Track
-              </h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Dedicated priority queue algorithm allowing professors to jump ahead of general tickets during short lecture breaks.
-              </p>
-            </div>
-
-            {/* Panel 3: Kitchen KDS */}
-            <div className="bg-slate-900/60 border border-slate-800/80 rounded-3xl p-6 space-y-4 hover:border-blue-500/40 transition-all group backdrop-blur-md">
-              <div className="bg-blue-500/15 text-blue-400 p-3.5 rounded-2xl w-fit group-hover:scale-110 transition-transform">
-                <ChefHat className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-blue-400 transition-colors">
-                Strict FCFS Kitchen Terminal
-              </h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                3-stage Kanban display with urgent wait timers, synthesized dual-tone audio chimes, and fullscreen tablet mode.
-              </p>
-            </div>
-
-            {/* Panel 4: PayCat Sandbox */}
-            <div className="bg-slate-900/60 border border-slate-800/80 rounded-3xl p-6 space-y-4 hover:border-emerald-500/40 transition-all group backdrop-blur-md">
-              <div className="bg-emerald-500/15 text-emerald-400 p-3.5 rounded-2xl w-fit group-hover:scale-110 transition-transform">
-                <Zap className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">
-                PayCat &amp; UPI Sandbox
-              </h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Dynamic UPI QR code simulator with 5-minute countdown and 1-click Success / Decline bank failure triggers.
-              </p>
-            </div>
-
-            {/* Panel 5: Voice Announcer & WhatsApp */}
-            <div className="bg-slate-900/60 border border-slate-800/80 rounded-3xl p-6 space-y-4 hover:border-cyan-500/40 transition-all group backdrop-blur-md">
-              <div className="bg-cyan-500/15 text-cyan-400 p-3.5 rounded-2xl w-fit group-hover:scale-110 transition-transform">
-                <Volume2 className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors">
-                Speech Calling &amp; WhatsApp Bills
-              </h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Web Speech synthesizer speaks ready order numbers over speakers, and students can share receipts on WhatsApp with 1 tap.
-              </p>
-            </div>
-
-            {/* Panel 6: Admin Menu & Analytics */}
-            <div className="bg-slate-900/60 border border-slate-800/80 rounded-3xl p-6 space-y-4 hover:border-rose-500/40 transition-all group backdrop-blur-md">
-              <div className="bg-rose-500/15 text-rose-400 p-3.5 rounded-2xl w-fit group-hover:scale-110 transition-transform">
-                <ShieldCheck className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-rose-400 transition-colors">
-                Admin Hub &amp; Price Controls
-              </h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Add new dishes, manage food categories, toggle out-of-stock items, and audit authoritative cancellations in real time.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* 5. 4-Step Interactive Dining Pipeline */}
-        <section className="bg-slate-900/80 border border-slate-800/90 rounded-3xl p-8 sm:p-12 space-y-8 backdrop-blur-xl">
-          <div className="text-center max-w-xl mx-auto space-y-2">
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              How Students &amp; Faculty Dine
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-400">
-              From scanning the table tent to picking up a piping-hot meal in under 8 minutes.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
-            <div className="space-y-3 text-center sm:text-left">
-              <div className="w-10 h-10 rounded-2xl bg-orange-500/20 text-orange-400 font-extrabold flex items-center justify-center border border-orange-500/40 mx-auto sm:mx-0">
-                1
-              </div>
-              <h4 className="font-bold text-base text-white">Scan Table QR</h4>
-              <p className="text-xs text-slate-400">
-                Sit down at any table in the food court and point your camera at the QR tent card.
-              </p>
-            </div>
-
-            <div className="space-y-3 text-center sm:text-left">
-              <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 font-extrabold flex items-center justify-center border border-amber-500/40 mx-auto sm:mx-0">
-                2
-              </div>
-              <h4 className="font-bold text-base text-white">Customize &amp; Pay</h4>
-              <p className="text-xs text-slate-400">
-                Add toppings (Extra Ghee, Cheese), select Faculty Priority if staff, and pay via UPI.
-              </p>
-            </div>
-
-            <div className="space-y-3 text-center sm:text-left">
-              <div className="w-10 h-10 rounded-2xl bg-blue-500/20 text-blue-400 font-extrabold flex items-center justify-center border border-blue-500/40 mx-auto sm:mx-0">
-                3
-              </div>
-              <h4 className="font-bold text-base text-white">FCFS Kitchen Cooking</h4>
-              <p className="text-xs text-slate-400">
-                Kitchen Chefs prepare food in strict First-Come-First-Serve order with zero token loss.
-              </p>
-            </div>
-
-            <div className="space-y-3 text-center sm:text-left">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 font-extrabold flex items-center justify-center border border-emerald-500/40 mx-auto sm:mx-0">
-                4
-              </div>
-              <h4 className="font-bold text-base text-white">Voice Call &amp; Savor</h4>
-              <p className="text-xs text-slate-400">
-                Receive live status pulse &amp; audio call when ready. Pick up and submit a 5-star rating!
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* 6. Testimonials Section */}
-        <section className="space-y-8">
-          <div className="text-center max-w-xl mx-auto space-y-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-orange-400">
-              Campus Testimonials
-            </span>
-            <h2 className="text-3xl font-extrabold text-white tracking-tight">
-              Loved by Students, Faculty &amp; Kitchen Staff
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {TESTIMONIALS.map((t, idx) => (
-              <Card
-                key={idx}
-                className="bg-slate-900/60 border border-slate-800/90 rounded-3xl p-6 flex flex-col justify-between space-y-4 hover:border-slate-700 transition-all backdrop-blur-md"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center gap-1 text-amber-400">
-                    {[...Array(t.rating)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
-                    &ldquo;{t.quote}&rdquo;
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t border-slate-800/80 flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-orange-500 to-amber-500 text-slate-950 font-bold flex items-center justify-center text-xs">
-                    {t.author.slice(0, 2).toUpperCase()}
-                  </div>
-                  <div>
-                    <h5 className="font-bold text-xs text-white">{t.author}</h5>
-                    <p className="text-[10px] text-slate-400">{t.role} &bull; {t.dept}</p>
-                  </div>
-                </div>
-              </Card>
             ))}
           </div>
         </section>
 
-        {/* 7. High-Impact Final CTA */}
-        <section className="relative rounded-3xl bg-gradient-to-r from-orange-500 via-amber-500 to-amber-600 p-8 sm:p-14 text-slate-950 shadow-2xl overflow-hidden text-center space-y-6">
-          <div className="max-w-2xl mx-auto space-y-3">
-            <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-950">
-              Ready to experience modern campus dining?
-            </h2>
-            <p className="text-sm sm:text-base font-semibold text-slate-900/90 max-w-xl mx-auto">
-              Scan Table 01 or jump straight to the live kitchen terminal to watch real-time order progression.
-            </p>
+        {/* DEPARTMENTS — single marquee */}
+        <section aria-label="Departments served" className="overflow-hidden py-6">
+          <p className="mb-3 text-center text-[12px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            Serving every department on campus
+          </p>
+          <div className="relative w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+            <div className="flex w-max items-center gap-10 whitespace-nowrap animate-marquee motion-reduce:animate-none">
+              {[...DEPARTMENTS, ...DEPARTMENTS].map((d, i) => (
+                <span key={i} className="font-display text-lg font-semibold text-ink/45">{d}</span>
+              ))}
+            </div>
           </div>
+        </section>
 
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-            <Link href="/t/qr_tbl_01_8fK29xQm7P7wL9a1">
-              <Button
-                size="lg"
-                className="bg-slate-950 hover:bg-slate-900 text-white font-extrabold rounded-2xl px-8 h-14 shadow-xl text-sm sm:text-base flex items-center gap-2"
-              >
-                <QrCode className="h-5 w-5 text-orange-400" /> Start Dine-In Order
+        {/* MENU PREVIEW — the appetite section, bento rhythm */}
+        <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20">
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h2 className="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
+                On the board today
+              </h2>
+              <p className="mt-2 max-w-md text-muted-foreground">
+                Fresh South Indian tiffins, hot meals and chaat. Priced for students, cooked to order.
+              </p>
+            </div>
+            <Link href="/menu">
+              <Button variant="outline" className="border-ink/20 bg-card font-semibold text-ink hover:bg-secondary">
+                Full menu <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
-            <Link href="/auth/login">
-              <Button
-                size="lg"
-                variant="outline"
-                className="bg-white/20 hover:bg-white/30 text-slate-950 border-slate-950/20 font-bold rounded-2xl px-6 h-14 text-sm sm:text-base"
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {MENU_PREVIEW.map((item, i) => (
+              <article
+                key={item.name}
+                className={`tray-card tray-card-hover group flex flex-col overflow-hidden ${
+                  i === 0 ? 'sm:col-span-2 sm:flex-row lg:col-span-2' : ''
+                }`}
               >
-                Sign In to Portal &rarr;
+                <div className={i === 0 ? 'sm:w-1/2' : ''}>
+                  <img
+                    src={U(item.img, i === 0 ? 800 : 500)}
+                    alt={item.name}
+                    loading="lazy"
+                    className={`w-full object-cover transition-transform duration-300 group-hover:scale-[1.03] ${
+                      i === 0 ? 'h-48 sm:h-full' : 'h-40'
+                    }`}
+                  />
+                </div>
+                <div className="flex flex-1 flex-col justify-between p-4">
+                  <div>
+                    <div className="mb-1.5 flex items-center gap-2">
+                      <VegDot />
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-chutney">{item.tag}</span>
+                    </div>
+                    <h3 className="font-display text-lg font-bold text-ink">{item.name}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{item.note}</p>
+                  </div>
+                  <div className="mt-4 flex items-center justify-between">
+                    <span className="numeric text-xl font-extrabold text-ink">₹{item.price}</span>
+                    <span className="text-xs font-semibold text-primary-deep opacity-0 transition-opacity group-hover:opacity-100">
+                      Add to tray
+                    </span>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* HOW IT WORKS — numbered timeline, verb labels */}
+        <section className="border-y border-border bg-secondary/60">
+          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20">
+            <h2 className="max-w-xl font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
+              From table to hot plate in four moves.
+            </h2>
+            <ol className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              {STEPS.map((s, i) => (
+                <li key={s.verb} className="relative">
+                  <div className="flex items-center gap-3">
+                    <span className="numeric grid h-9 w-9 place-items-center rounded-lg bg-ink text-sm font-bold text-background">
+                      {i + 1}
+                    </span>
+                    <span className="h-px flex-1 bg-border" />
+                  </div>
+                  <h3 className="mt-4 font-display text-xl font-bold text-ink">{s.verb}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{s.body}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {/* CAPABILITIES — asymmetric, image-anchored */}
+        <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20">
+          <div className="grid gap-8 lg:grid-cols-[1fr_1.15fr] lg:gap-12">
+            <div className="lg:sticky lg:top-24 lg:self-start">
+              <p className="text-[13px] font-bold uppercase tracking-[0.16em] text-chutney">The full stack</p>
+              <h2 className="mt-4 font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
+                Everything a busy canteen needs, nothing it doesn&rsquo;t.
+              </h2>
+              <p className="mt-4 max-w-md text-muted-foreground">
+                Built from scratch to kill lunch-hour queues, lost paper tokens and mixed-up orders.
+              </p>
+              <div className="mt-6 overflow-hidden rounded-lg border border-border">
+                <img src={U(IMG.paneer, 800)} alt="Paneer butter masala in a copper kadai with rice and papad" loading="lazy" className="h-56 w-full object-cover" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {CAPABILITIES.map(({ icon: Icon, title, body }) => (
+                <div key={title} className="tray-card p-5">
+                  <span className="grid h-10 w-10 place-items-center rounded-lg bg-primary/15 text-primary-deep">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <h3 className="mt-4 font-display text-base font-bold text-ink">{title}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* FACULTY FAST-TRACK — full-width ink band, breaks rhythm */}
+        <section className="bg-ink text-background">
+          <div className="mx-auto flex max-w-6xl flex-col items-start gap-6 px-4 py-14 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:py-16">
+            <div className="max-w-xl">
+              <div className="flex items-center gap-2 text-primary-soft">
+                <GraduationCap className="h-5 w-5" />
+                <span className="text-[13px] font-bold uppercase tracking-[0.16em]">Faculty priority</span>
+              </div>
+              <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
+                Ten minutes between lectures? That&rsquo;s enough.
+              </h2>
+              <p className="mt-3 text-background/70">
+                Staff orders take a dedicated lane on the kitchen board and jump the general queue, so a hot lunch fits the break.
+              </p>
+            </div>
+            <Link href="/auth/login">
+              <Button size="lg" className="btn-marigold h-12 px-6 text-base">
+                Sign in as faculty <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
           </div>
         </section>
+
+        {/* TESTIMONIALS */}
+        <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20">
+          <h2 className="mb-8 max-w-lg font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
+            Students, faculty and chefs already run on it.
+          </h2>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {TESTIMONIALS.map((t) => (
+              <figure key={t.author} className="tray-card flex flex-col justify-between p-6">
+                <div>
+                  <div className="flex gap-0.5 text-primary">
+                    {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-primary" />)}
+                  </div>
+                  <blockquote className="mt-3 text-[15px] leading-relaxed text-ink/85">
+                    &ldquo;{t.quote}&rdquo;
+                  </blockquote>
+                </div>
+                <figcaption className="mt-5 border-t border-border pt-4">
+                  <div className="font-display text-sm font-bold text-ink">{t.author}</div>
+                  <div className="text-xs text-muted-foreground">{t.role}</div>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+
+        {/* FINAL CTA — marigold band */}
+        <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+          <div className="overflow-hidden rounded-2xl bg-primary px-6 py-12 text-center sm:px-12 sm:py-16">
+            <h2 className="mx-auto max-w-2xl font-display text-3xl font-extrabold tracking-tight text-primary-foreground sm:text-4xl">
+              Sit down, scan, and let the kitchen do the running.
+            </h2>
+            <p className="mx-auto mt-3 max-w-lg font-medium text-ink/70">
+              Try a live dine-in order from Table 01, or open the kitchen board to watch tokens move.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <Link href="/t/qr_tbl_01_8fK29xQm7P7wL9a1">
+                <Button size="lg" className="h-12 bg-ink px-6 text-base font-bold text-background hover:bg-ink/90">
+                  <QrCode className="mr-2 h-5 w-5" /> Start a dine-in order
+                </Button>
+              </Link>
+              <Link href="/kitchen">
+                <Button size="lg" variant="outline" className="h-12 border-ink/25 bg-transparent px-5 text-base font-semibold text-ink hover:bg-ink/10">
+                  <ChefHat className="mr-2 h-5 w-5" /> Open kitchen board
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
       </main>
 
-      {/* 8. Refined Premium Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950 py-10 text-xs text-slate-500 font-sans">
-        <div className="container mx-auto px-4 max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-4">
+      {/* FOOTER — warm ink close */}
+      <footer className="bg-ink text-background/70">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-5 px-4 py-10 sm:flex-row sm:px-6">
           <div className="flex items-center gap-2.5">
-            <div className="bg-orange-500 text-slate-950 p-1.5 rounded-xl font-bold">
-              <Utensils className="h-4 w-4" />
-            </div>
-            <span className="font-extrabold text-white">G. Pulla Reddy Engineering College</span>
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
+              <Soup className="h-4 w-4" />
+            </span>
+            <span className="font-display text-sm font-bold text-background">G. Pulla Reddy Engineering College</span>
           </div>
-
-          <div className="flex items-center gap-4 text-[11px] font-semibold text-slate-400">
-            <Link href="/menu" className="hover:text-white transition-colors">Menu</Link>
-            <Link href="/kitchen" className="hover:text-white transition-colors">Kitchen KDS</Link>
-            <Link href="/admin/dashboard" className="hover:text-white transition-colors">Admin Dashboard</Link>
-            <Link href="/admin/tables" className="hover:text-white transition-colors">QR Tables</Link>
-          </div>
-
-          <p className="text-[11px] text-slate-500">
-            &copy; {new Date().getFullYear()} GPREC Food Court &bull; Built with Next.js 14 &amp; Supabase
+          <nav className="flex items-center gap-5 text-sm font-medium">
+            <Link href="/menu" className="hover:text-background">Menu</Link>
+            <Link href="/kitchen" className="hover:text-background">Kitchen</Link>
+            <Link href="/admin/dashboard" className="hover:text-background">Admin</Link>
+            <Link href="/admin/tables" className="hover:text-background">QR tables</Link>
+          </nav>
+          <p className="text-xs text-background/50">
+            &copy; {new Date().getFullYear()} GPREC Food Court &middot; Kurnool
           </p>
         </div>
       </footer>

@@ -56,77 +56,80 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8 px-4 font-sans text-slate-100">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-3">
-        <div className="w-14 h-14 bg-primary/20 text-primary rounded-2xl flex items-center justify-center mx-auto border border-primary/30 shadow-lg">
+    <div className="flex min-h-screen flex-col justify-center bg-background px-4 py-12 font-sans text-foreground sm:px-6 lg:px-8">
+      <div className="space-y-3 text-center sm:mx-auto sm:w-full sm:max-w-md">
+        <span className="mx-auto grid h-14 w-14 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm">
           <Utensils className="h-7 w-7" />
-        </div>
-        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-[10px] uppercase font-mono tracking-wider">
+        </span>
+        <Badge
+          variant="outline"
+          className="border-border bg-secondary text-[10px] font-bold uppercase tracking-wider text-chutney"
+        >
           G. Pulla Reddy Engineering College
         </Badge>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+        <h1 className="font-display text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
           Student Registration
         </h1>
-        <p className="text-xs text-slate-400">
+        <p className="text-sm text-muted-foreground">
           Create your GPREC dining account for fast campus ordering and history tracking.
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <Card className="bg-slate-950/90 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-xl text-slate-200">
+        <Card className="tray-card overflow-hidden rounded-xl">
           {success ? (
-            <CardContent className="p-8 text-center space-y-4">
-              <div className="w-14 h-14 bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto border border-emerald-500/30">
+            <CardContent className="space-y-4 p-8 text-center">
+              <div className="mx-auto grid h-14 w-14 place-items-center rounded-xl bg-leaf/15 text-leaf">
                 <CheckCircle2 className="h-8 w-8" />
               </div>
-              <h3 className="text-xl font-bold text-white">Registration Successful!</h3>
-              <p className="text-xs text-slate-400 leading-relaxed max-w-xs mx-auto">
+              <h3 className="font-display text-xl font-bold text-ink">Registration Successful!</h3>
+              <p className="mx-auto max-w-xs text-sm leading-relaxed text-muted-foreground">
                 Your GPREC student profile has been created. You can now start ordering meals right from your table.
               </p>
               <div className="pt-2">
                 <Link href="/menu">
-                  <Button className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-xs h-11 shadow-lg">
+                  <Button className="btn-marigold h-11 w-full text-sm">
                     Continue to Food Court Menu &rarr;
                   </Button>
                 </Link>
               </div>
             </CardContent>
           ) : (
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4 p-6">
               {error && (
-                <div className="rounded-2xl bg-rose-500/15 border border-rose-500/30 p-3 text-xs text-rose-300 font-semibold">
+                <div className="rounded-lg border border-chutney/30 bg-chutney/10 p-3 text-xs font-semibold text-chutney">
                   {error}
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="firstName" className="text-xs font-semibold text-slate-300">First Name</Label>
+                  <Label htmlFor="firstName" className="text-sm font-medium text-ink">First Name</Label>
                   <Input
                     id="firstName"
                     required
                     placeholder="Priya"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="bg-slate-900 border-slate-800 text-white rounded-xl text-xs h-10"
+                    className="h-11"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="lastName" className="text-xs font-semibold text-slate-300">Last Name</Label>
+                  <Label htmlFor="lastName" className="text-sm font-medium text-ink">Last Name</Label>
                   <Input
                     id="lastName"
                     required
                     placeholder="Reddy"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="bg-slate-900 border-slate-800 text-white rounded-xl text-xs h-10"
+                    className="h-11"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                  <Mail className="h-3.5 w-3.5 text-slate-400" /> College Email
+                <Label htmlFor="email" className="text-sm font-medium text-ink">
+                  <Mail className="h-3.5 w-3.5 text-steel" /> College Email
                 </Label>
                 <Input
                   id="email"
@@ -135,13 +138,13 @@ export default function SignupPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-slate-900 border-slate-800 text-white rounded-xl text-xs h-10"
+                  className="h-11"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="phone" className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                  <Phone className="h-3.5 w-3.5 text-slate-400" /> Mobile (Optional)
+                <Label htmlFor="phone" className="text-sm font-medium text-ink">
+                  <Phone className="h-3.5 w-3.5 text-steel" /> Mobile (Optional)
                 </Label>
                 <Input
                   id="phone"
@@ -149,13 +152,13 @@ export default function SignupPage() {
                   placeholder="+91 9876543210"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="bg-slate-900 border-slate-800 text-white rounded-xl text-xs h-10"
+                  className="h-11"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                  <Lock className="h-3.5 w-3.5 text-slate-400" /> Password
+                <Label htmlFor="password" className="text-sm font-medium text-ink">
+                  <Lock className="h-3.5 w-3.5 text-steel" /> Password
                 </Label>
                 <Input
                   id="password"
@@ -165,14 +168,14 @@ export default function SignupPage() {
                   placeholder="Min 6 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-slate-900 border-slate-800 text-white rounded-xl text-xs h-10"
+                  className="h-11"
                 />
               </div>
 
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl text-xs font-bold h-11 mt-2 shadow-lg"
+                className="btn-marigold mt-2 h-11 w-full text-sm"
               >
                 {loading ? (
                   <span className="flex items-center gap-2">
@@ -185,9 +188,9 @@ export default function SignupPage() {
                 )}
               </Button>
 
-              <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+              <div className="flex items-center justify-between border-t border-border pt-3 text-xs text-muted-foreground">
                 <span>Already registered?</span>
-                <Link href="/auth/login" className="text-primary hover:underline font-bold">
+                <Link href="/auth/login" className="font-bold text-primary-deep hover:underline">
                   Sign In &rarr;
                 </Link>
               </div>

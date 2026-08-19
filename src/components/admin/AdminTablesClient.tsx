@@ -199,18 +199,18 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
       {/* Top Header Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <QrCode className="h-8 w-8 text-primary" /> GPREC Table &amp; QR Manager
+          <h1 className="font-display text-3xl font-extrabold text-ink tracking-tight flex items-center gap-2.5">
+            <QrCode className="h-8 w-8 text-primary-deep" /> GPREC Table &amp; QR Manager
           </h1>
-          <p className="text-xs sm:text-sm text-slate-700 font-semibold mt-1">
-            Physical table mapping, crypto-secure QR tokens, and printable tent cards ({tables.length} Total Tables).
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1.5">
+            Physical table mapping, crypto-secure QR tokens, and printable tent cards (<span className="numeric">{tables.length}</span> Total Tables).
           </p>
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
           <Button
             onClick={handleOpenAddModal}
-            className="bg-primary hover:bg-primary/90 text-white rounded-2xl text-xs font-extrabold h-10 px-4 shadow-md flex items-center gap-1.5"
+            className="btn-marigold rounded-lg text-xs font-extrabold h-10 px-4 flex items-center gap-1.5"
           >
             <Plus className="h-4 w-4" /> Add New Table
           </Button>
@@ -218,7 +218,7 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
           <Button
             onClick={handlePrint}
             variant="outline"
-            className="rounded-2xl text-xs font-bold h-10 px-4 border-slate-300 hover:bg-slate-100 flex items-center gap-1.5"
+            className="rounded-lg text-xs font-bold h-10 px-4 bg-card border-ink/20 text-ink hover:bg-secondary flex items-center gap-1.5"
           >
             <Printer className="h-4 w-4" /> Print Tent Cards
           </Button>
@@ -234,31 +234,31 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
           return (
             <Card
               key={table.id}
-              className="rounded-3xl border border-slate-200/80 shadow-xs bg-white flex flex-col justify-between overflow-hidden hover:shadow-md transition-all print:border print:shadow-none print:break-inside-avoid"
+              className="flex flex-col justify-between transition-all hover:shadow-md hover:ring-primary/30 print:ring-0 print:shadow-none print:break-inside-avoid"
             >
-              <CardHeader className="p-5 pb-3 border-b border-slate-100 bg-slate-50/50">
+              <CardHeader className="p-5 pb-3 border-b border-border bg-secondary/40">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="bg-primary/10 text-primary p-2 rounded-xl">
+                    <div className="bg-primary/15 text-primary-deep p-2 rounded-lg">
                       <Utensils className="h-4 w-4" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg font-extrabold text-slate-900">
+                      <CardTitle className="font-display text-lg font-extrabold text-ink">
                         {table.table_number}
                       </CardTitle>
-                      <CardDescription className="text-[11px] flex items-center gap-1 text-slate-500">
+                      <CardDescription className="text-[11px] flex items-center gap-1 text-muted-foreground">
                         <MapPin className="h-3 w-3" /> {table.canteens?.name || 'GPREC Main Food Court'}
                       </CardDescription>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] font-bold">
+                    <Badge variant="outline" className="bg-leaf/10 text-leaf border-leaf/20 text-[10px] font-bold rounded-md">
                       Active
                     </Badge>
                     <button
                       onClick={() => handleOpenDeleteModal(table)}
-                      className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition print:hidden"
+                      className="text-steel hover:text-chutney p-1.5 rounded-lg hover:bg-chutney/10 transition print:hidden"
                       title="Delete Table"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -268,41 +268,41 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
               </CardHeader>
 
               <CardContent className="p-6 flex flex-col items-center justify-center space-y-4">
-                {/* SVG Rendered QR Code */}
-                <div className="bg-white p-4 rounded-2xl border-2 border-slate-900/10 shadow-sm flex flex-col items-center space-y-2">
+                {/* SVG Rendered QR Code - kept on white for scannability */}
+                <div className="bg-white p-4 rounded-lg border border-border shadow-sm flex flex-col items-center space-y-2">
                   <QRCodeSVG
                     value={qrUrl}
                     size={160}
                     level="H"
                     includeMargin={false}
                   />
-                  <span className="text-[10px] font-mono text-slate-400">
+                  <span className="numeric text-[10px] text-steel">
                     Scan to Order &bull; {table.table_number}
                   </span>
                 </div>
 
                 <div className="w-full text-center space-y-1">
-                  <div className="text-[11px] font-mono text-muted-foreground bg-slate-50 p-1.5 rounded-lg border truncate">
+                  <div className="numeric text-[11px] text-muted-foreground bg-secondary/60 p-1.5 rounded-lg border border-border truncate">
                     {qrUrl}
                   </div>
                 </div>
               </CardContent>
 
-              <CardFooter className="p-4 pt-0 border-t border-slate-100 bg-slate-50/40 grid grid-cols-2 gap-2 print:hidden">
+              <CardFooter className="p-4 pt-0 border-t border-border bg-secondary/40 grid grid-cols-2 gap-2 print:hidden">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handleCopyLink(table.qr_code)}
-                  className="rounded-xl text-xs font-semibold"
+                  className="rounded-lg text-xs font-semibold border-ink/20 text-ink hover:bg-secondary"
                 >
-                  {isCopied ? <Check className="h-3.5 w-3.5 mr-1 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 mr-1" />}
+                  {isCopied ? <Check className="h-3.5 w-3.5 mr-1 text-leaf" /> : <Copy className="h-3.5 w-3.5 mr-1" />}
                   {isCopied ? 'Copied' : 'Copy Link'}
                 </Button>
 
                 <Link href={`/t/${table.qr_code}`} target="_blank" className="w-full">
                   <Button
                     size="sm"
-                    className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1"
+                    className="w-full bg-ink hover:bg-ink/90 text-background rounded-lg text-xs font-semibold flex items-center justify-center gap-1"
                   >
                     Test Scan <ExternalLink className="h-3 w-3" />
                   </Button>
@@ -315,21 +315,21 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
 
       {/* --- ADD NEW TABLE MODAL DIALOG --- */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-slate-200 animate-in fade-in-50 zoom-in-95 space-y-5">
-            <div className="flex items-center justify-between border-b pb-3">
+        <div className="fixed inset-0 z-50 bg-ink/50 flex items-center justify-center p-4">
+          <div className="bg-card rounded-xl p-6 w-full max-w-md shadow-lg border border-border animate-in fade-in-50 zoom-in-95 space-y-5">
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-orange-50 text-primary rounded-xl">
+                <div className="p-2 bg-primary/15 text-primary-deep rounded-lg">
                   <QrCode className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-lg text-slate-900">Add New Dining Table</h3>
+                  <h3 className="font-display font-extrabold text-lg text-ink">Add New Dining Table</h3>
                   <p className="text-xs text-muted-foreground">Register a physical table &amp; generate its QR token</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100"
+                className="text-steel hover:text-ink p-1.5 rounded-lg hover:bg-secondary"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -338,10 +338,10 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
             {feedbackMsg && (
               <div
                 role="alert"
-                className={`p-3 rounded-xl text-xs font-bold border ${
+                className={`p-3 rounded-lg text-xs font-bold border ${
                   feedbackMsg.type === 'error'
-                    ? 'bg-rose-50 text-rose-700 border-rose-200'
-                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    ? 'bg-chutney/10 text-chutney border-chutney/20'
+                    : 'bg-leaf/10 text-leaf border-leaf/20'
                 }`}
               >
                 {feedbackMsg.text}
@@ -350,7 +350,7 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
 
             <form onSubmit={handleCreateNewTable} className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="tableName" className="text-xs font-bold text-slate-700">
+                <Label htmlFor="tableName" className="text-xs font-bold text-ink">
                   Table Number / Name *
                 </Label>
                 <Input
@@ -363,12 +363,12 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
                     setNewQrToken(generateRandomToken(e.target.value));
                   }}
                   required
-                  className="rounded-xl text-sm"
+                  className="rounded-lg text-sm"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="locationName" className="text-xs font-bold text-slate-700">
+                <Label htmlFor="locationName" className="text-xs font-bold text-ink">
                   Canteen Location
                 </Label>
                 <Input
@@ -376,19 +376,19 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
                   type="text"
                   value={newLocationName}
                   onChange={(e) => setNewLocationName(e.target.value)}
-                  className="rounded-xl text-sm"
+                  className="rounded-lg text-sm"
                 />
               </div>
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="qrToken" className="text-xs font-bold text-slate-700">
+                  <Label htmlFor="qrToken" className="text-xs font-bold text-ink">
                     Generated QR Token
                   </Label>
                   <button
                     type="button"
                     onClick={() => setNewQrToken(generateRandomToken(newTableNumber))}
-                    className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1"
+                    className="text-[11px] font-bold text-primary-deep hover:underline flex items-center gap-1"
                   >
                     <RefreshCw className="h-3 w-3" /> Regenerate
                   </button>
@@ -399,23 +399,23 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
                   value={newQrToken}
                   onChange={(e) => setNewQrToken(e.target.value)}
                   required
-                  className="font-mono text-xs rounded-xl bg-slate-50"
+                  className="numeric text-xs rounded-lg bg-secondary/60"
                 />
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-2 border-t">
+              <div className="pt-3 flex items-center justify-end gap-2 border-t border-border">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="rounded-xl text-xs font-semibold"
+                  className="rounded-lg text-xs font-semibold border-ink/20 text-ink"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-primary hover:bg-primary/90 text-white rounded-xl text-xs font-extrabold px-5 shadow-sm"
+                  className="btn-marigold rounded-lg text-xs font-extrabold px-5"
                 >
                   {isSubmitting ? 'Creating Table...' : 'Save & Generate QR'}
                 </Button>
@@ -427,16 +427,16 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
 
       {/* --- DELETE CONFIRMATION MODAL --- */}
       {isDeleteModalOpen && tableToDelete && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-slate-200 animate-in fade-in-50 zoom-in-95 space-y-4 text-center">
-            <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-200">
+        <div className="fixed inset-0 z-50 bg-ink/50 flex items-center justify-center p-4">
+          <div className="bg-card rounded-xl p-6 w-full max-w-sm shadow-lg border border-border animate-in fade-in-50 zoom-in-95 space-y-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-chutney/10 text-chutney flex items-center justify-center mx-auto border border-chutney/20">
               <AlertTriangle className="h-6 w-6" />
             </div>
 
             <div className="space-y-1">
-              <h3 className="font-extrabold text-lg text-slate-900">Delete {tableToDelete.table_number}?</h3>
+              <h3 className="font-display font-extrabold text-lg text-ink">Delete {tableToDelete.table_number}?</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Are you sure you want to remove this table and deactivate its physical QR token (<span className="font-mono">{tableToDelete.qr_code}</span>)?
+                Are you sure you want to remove this table and deactivate its physical QR token (<span className="numeric">{tableToDelete.qr_code}</span>)?
               </p>
             </div>
 
@@ -448,7 +448,7 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
                   setIsDeleteModalOpen(false);
                   setTableToDelete(null);
                 }}
-                className="rounded-xl text-xs font-semibold w-full"
+                className="rounded-lg text-xs font-semibold w-full border-ink/20 text-ink"
               >
                 Keep Table
               </Button>
@@ -457,7 +457,7 @@ export function AdminTablesClient({ initialTables = [], appUrl = '' }: { initial
                 type="button"
                 disabled={isSubmitting}
                 onClick={handleConfirmDelete}
-                className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold w-full shadow-sm"
+                className="bg-chutney hover:bg-chutney/90 text-white rounded-lg text-xs font-bold w-full"
               >
                 {isSubmitting ? 'Deleting...' : 'Confirm Delete'}
               </Button>

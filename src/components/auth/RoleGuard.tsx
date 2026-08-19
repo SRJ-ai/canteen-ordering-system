@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { ShieldAlert, Lock, ArrowRight, Loader2, UserCheck } from 'lucide-react';
+import { Lock, ArrowRight, Loader2, UserCheck, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -18,8 +18,8 @@ export function RoleGuard({ children, allowedRoles, portalName = 'Restricted Por
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
+      <div className="flex min-h-[60vh] flex-col items-center justify-center p-6 text-center">
+        <Loader2 className="mb-3 h-8 w-8 animate-spin text-primary-deep" />
         <p className="text-xs font-semibold text-muted-foreground">Verifying GPREC security credentials...</p>
       </div>
     );
@@ -31,19 +31,19 @@ export function RoleGuard({ children, allowedRoles, portalName = 'Restricted Por
     const isStaffPortal = allowedRoles.includes('ADMIN') || allowedRoles.includes('KITCHEN_STAFF');
 
     return (
-      <div className="max-w-md mx-auto my-12 p-8 bg-white border border-slate-200/80 rounded-3xl shadow-lg text-center space-y-6">
-        <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto border border-rose-100 shadow-inner">
+      <div className="tray-card mx-auto my-12 max-w-md space-y-6 p-8 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl border border-chutney/20 bg-chutney/10 text-chutney">
           <Lock className="h-8 w-8" />
         </div>
 
         <div>
-          <Badge variant="outline" className="text-[10px] uppercase font-mono tracking-wider text-rose-600 border-rose-200 mb-2">
+          <Badge variant="outline" className="numeric mb-2 border-chutney/25 text-[10px] uppercase tracking-wider text-chutney">
             GPREC Access Control
           </Badge>
-          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="font-display text-2xl font-extrabold tracking-tight text-ink">
             {portalName} Access Required
           </h2>
-          <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
             This area requires an authorized GPREC staff account ({allowedRoles.join(' or ')}).
             {user ? ` You are currently signed in as ${user.email} (${role || 'Customer'}).` : ' Please sign in to proceed.'}
           </p>
@@ -51,21 +51,21 @@ export function RoleGuard({ children, allowedRoles, portalName = 'Restricted Por
 
         {/* Quick Demo Sign In Options */}
         {isStaffPortal && (
-          <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200 text-left space-y-2.5">
-            <span className="text-[11px] font-extrabold text-slate-800 uppercase tracking-wider block">
-              ⚡ One-Click GPREC Demo Logins:
+          <div className="space-y-2.5 rounded-lg border border-border bg-secondary/50 p-4 text-left">
+            <span className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-ink">
+              <Sparkles className="h-3.5 w-3.5 text-primary-deep" /> One-click GPREC demo logins
             </span>
             <div className="grid grid-cols-1 gap-2.5">
               {allowedRoles.includes('ADMIN') && (
                 <button
                   type="button"
                   onClick={() => quickLogin('ADMIN')}
-                  className="w-full flex items-center justify-between p-3 rounded-xl bg-white hover:bg-emerald-50 border-2 border-emerald-300 text-slate-900 shadow-xs transition-all text-left group"
+                  className="group flex w-full items-center justify-between rounded-lg border-2 border-ink/20 bg-card p-3 text-left text-ink shadow-xs transition-all hover:bg-secondary"
                 >
-                  <span className="flex items-center gap-2 text-xs font-extrabold text-emerald-950">
-                    <UserCheck className="h-4 w-4 text-emerald-600 shrink-0" /> Log in as GPREC Admin
+                  <span className="flex items-center gap-2 text-xs font-extrabold text-ink">
+                    <UserCheck className="h-4 w-4 shrink-0 text-ink" /> Log in as GPREC Admin
                   </span>
-                  <span className="font-mono text-[10px] font-bold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-md border border-emerald-200">
+                  <span className="numeric rounded-md border border-border bg-secondary px-2 py-0.5 text-[10px] font-bold text-ink">
                     admin@gprec.ac.in
                   </span>
                 </button>
@@ -74,12 +74,12 @@ export function RoleGuard({ children, allowedRoles, portalName = 'Restricted Por
                 <button
                   type="button"
                   onClick={() => quickLogin('KITCHEN')}
-                  className="w-full flex items-center justify-between p-3 rounded-xl bg-white hover:bg-amber-50 border-2 border-amber-300 text-slate-900 shadow-xs transition-all text-left group"
+                  className="group flex w-full items-center justify-between rounded-lg border-2 border-primary/40 bg-card p-3 text-left text-ink shadow-xs transition-all hover:bg-primary/5"
                 >
-                  <span className="flex items-center gap-2 text-xs font-extrabold text-amber-950">
-                    <UserCheck className="h-4 w-4 text-amber-600 shrink-0" /> Log in as Kitchen Chef
+                  <span className="flex items-center gap-2 text-xs font-extrabold text-ink">
+                    <UserCheck className="h-4 w-4 shrink-0 text-primary-deep" /> Log in as Kitchen Chef
                   </span>
-                  <span className="font-mono text-[10px] font-bold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-md border border-amber-200">
+                  <span className="numeric rounded-md border border-primary/25 bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary-deep">
                     kitchen@gprec.ac.in
                   </span>
                 </button>
@@ -90,13 +90,13 @@ export function RoleGuard({ children, allowedRoles, portalName = 'Restricted Por
 
         <div className="flex flex-col gap-2">
           <Link href="/auth/login">
-            <Button className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl text-xs font-bold shadow-md">
-              Sign In with Email / Password <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+            <Button className="btn-marigold w-full text-xs">
+              Sign in with email / password <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
             </Button>
           </Link>
           <Link href="/menu">
             <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground">
-              Return to Canteen Menu
+              Return to canteen menu
             </Button>
           </Link>
         </div>

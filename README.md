@@ -1,6 +1,6 @@
-# 🍽️ Campus Bites — Production Canteen Customer Ordering System
+# GPREC Food Court — Campus Canteen Ordering System
 
-> An enterprise-grade, QR-based table ordering, kitchen display (KDS), and admin order management system built with **Next.js 14 (App Router)**, **TypeScript**, **Supabase PostgreSQL & RLS**, and styled with the **Supabase Design System (`DESIGN.md`)**.
+> An enterprise-grade, QR-based table ordering, kitchen display (KDS), and admin order management system built with **Next.js 14 (App Router)**, **TypeScript**, **Supabase PostgreSQL & RLS**, and styled with the **Steel & Marigold design system (`DESIGN.md`)**.
 
 ---
 
@@ -100,6 +100,18 @@ Open [http://localhost:3000](http://localhost:3000).
 | **Admin Live Orders** | `/admin/orders` | Live order control & cancellation modal |
 | **Table QR Generator** | `/admin/tables` | Printable SVG QR table cards |
 | **Menu Editor** | `/admin/menu` | Instant availability toggle & price editing |
+
+---
+
+## 🎨 Design System
+
+The whole app runs on **Steel & Marigold** — a warm South Indian campus-canteen visual
+language: off-white "steel-tray" ground, one marigold accent, chutney red for urgency,
+banana-leaf green reserved for veg marks and ready states, Bricolage Grotesque display
+type, and JetBrains Mono for every price, token, and timer. The Kitchen KDS is the one
+deliberately dark surface, built for glance-from-a-distance legibility on a wall display.
+
+Full token, type, and component reference: [`DESIGN.md`](./DESIGN.md).
 
 ---
 

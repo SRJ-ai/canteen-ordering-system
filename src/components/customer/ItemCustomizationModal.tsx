@@ -92,22 +92,22 @@ export function ItemCustomizationModal({ item, isOpen, onClose, onAddToCart }: I
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md p-6 bg-white max-h-[90vh] flex flex-col justify-between overflow-hidden">
-        <DialogHeader className="text-left pb-3 border-b">
+      <DialogContent className="flex max-h-[90vh] flex-col justify-between overflow-hidden bg-background p-6 sm:max-w-md">
+        <DialogHeader className="border-b border-border pb-3 text-left">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <div className="flex items-center gap-2 mb-1">
+              <div className="mb-1 flex items-center gap-2">
                 <span className="veg-indicator"><span className="veg-indicator-dot"></span></span>
-                <span className="text-xs font-semibold text-primary uppercase tracking-wider">
-                  {item.categories?.name || 'Canteen Special'}
+                <span className="text-xs font-bold uppercase tracking-wider text-chutney">
+                  {item.categories?.name || 'Canteen special'}
                 </span>
               </div>
-              <DialogTitle className="text-xl font-bold text-slate-900">{item.name}</DialogTitle>
+              <DialogTitle className="font-display text-xl font-bold text-ink">{item.name}</DialogTitle>
             </div>
-            <div className="text-xl font-extrabold text-slate-900">₹{item.base_price}</div>
+            <div className="numeric text-xl font-extrabold text-ink">₹{item.base_price}</div>
           </div>
           {item.description && (
-            <DialogDescription className="text-xs text-muted-foreground pt-1 line-clamp-2">
+            <DialogDescription className="line-clamp-2 pt-1 text-xs text-muted-foreground">
               {item.description}
             </DialogDescription>
           )}
@@ -120,7 +120,7 @@ export function ItemCustomizationModal({ item, isOpen, onClose, onAddToCart }: I
             item.menu_item_addons.map((addonGroup) => (
               <div key={addonGroup.id} className="space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-sm text-slate-800">{addonGroup.name}</h4>
+                  <h4 className="font-display text-sm font-bold text-ink">{addonGroup.name}</h4>
                   <span className="text-[11px] text-muted-foreground">Optional</span>
                 </div>
                 <div className="space-y-2">
@@ -130,23 +130,23 @@ export function ItemCustomizationModal({ item, isOpen, onClose, onAddToCart }: I
                       <div
                         key={option.id}
                         onClick={() => handleAddonToggle(option)}
-                        className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
+                        className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-all ${
                           isSelected
-                            ? 'bg-orange-50/80 border-primary shadow-sm text-slate-900'
-                            : 'bg-slate-50/50 hover:bg-slate-100 border-slate-200 text-slate-700'
+                            ? 'border-primary bg-primary/10 text-ink shadow-sm'
+                            : 'border-border bg-card text-ink hover:bg-secondary'
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-5 h-5 rounded-md flex items-center justify-center border transition-colors ${
-                              isSelected ? 'bg-primary border-primary text-white' : 'border-slate-300 bg-white'
+                            className={`flex h-5 w-5 items-center justify-center rounded-md border transition-colors ${
+                              isSelected ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background'
                             }`}
                           >
                             {isSelected && <Check className="h-3.5 w-3.5 stroke-[3]" />}
                           </div>
                           <span className="text-sm font-medium">{option.name}</span>
                         </div>
-                        <span className="text-xs font-bold text-slate-800">
+                        <span className="numeric text-xs font-bold text-ink">
                           +₹{Number(option.price_adjustment).toFixed(2)}
                         </span>
                       </div>
@@ -156,39 +156,41 @@ export function ItemCustomizationModal({ item, isOpen, onClose, onAddToCart }: I
               </div>
             ))
           ) : (
-            <div className="text-xs text-muted-foreground bg-slate-50 p-3 rounded-lg border text-center">
-              No extra add-ons available for this item. You can add cooking instructions below.
+            <div className="rounded-lg border border-border bg-secondary/60 p-3 text-center text-xs text-muted-foreground">
+              No extra add-ons for this item. You can still add cooking instructions below.
             </div>
           )}
 
           {/* Cooking Instructions Note */}
           <div className="space-y-2">
-            <Label htmlFor="custom-notes" className="text-xs font-bold text-slate-800">
-              Special Instructions for Kitchen
+            <Label htmlFor="custom-notes" className="text-xs font-bold text-ink">
+              Special instructions for kitchen
             </Label>
             <Input
               id="custom-notes"
-              placeholder="e.g. Less spicy, extra crispy, no onion..."
+              placeholder="e.g. Less spicy, extra crispy, no onion"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="text-xs rounded-xl"
+              className="rounded-lg text-xs"
             />
           </div>
         </div>
 
         {/* Footer with Quantity & Add Button */}
-        <DialogFooter className="border-t pt-4 flex flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 bg-slate-100 rounded-xl p-1.5 border">
+        <DialogFooter className="flex flex-row items-center justify-between gap-4 border-t border-border pt-4">
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary p-1.5">
             <button
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="p-1.5 rounded-lg hover:bg-white text-slate-700 transition"
+              className="rounded-md p-1.5 text-ink transition hover:bg-card"
+              aria-label="Remove one"
             >
               <Minus className="h-4 w-4" />
             </button>
-            <span className="font-bold text-sm min-w-[24px] text-center">{quantity}</span>
+            <span className="numeric min-w-[24px] text-center text-sm font-bold">{quantity}</span>
             <button
               onClick={() => setQuantity(quantity + 1)}
-              className="p-1.5 rounded-lg hover:bg-white text-slate-700 transition"
+              className="rounded-md p-1.5 text-ink transition hover:bg-card"
+              aria-label="Add one"
             >
               <Plus className="h-4 w-4" />
             </button>
@@ -196,10 +198,10 @@ export function ItemCustomizationModal({ item, isOpen, onClose, onAddToCart }: I
 
           <Button
             onClick={handleConfirm}
-            className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold h-11 rounded-xl shadow-md flex items-center justify-between px-4"
+            className="flex h-11 flex-1 items-center justify-between rounded-lg px-4 font-bold shadow-sm"
           >
-            <span>Add Item</span>
-            <span>₹{totalPrice.toFixed(2)}</span>
+            <span>Add item</span>
+            <span className="numeric">₹{totalPrice.toFixed(2)}</span>
           </Button>
         </DialogFooter>
       </DialogContent>

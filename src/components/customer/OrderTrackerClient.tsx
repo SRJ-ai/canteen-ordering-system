@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { getOrderDetailsAction, cancelCustomerOrderAction } from '@/features/orders/order.actions';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -13,7 +13,6 @@ import {
   ChefHat,
   BellRing,
   Utensils,
-  XCircle,
   AlertTriangle,
   ArrowLeft,
   RotateCw,
@@ -22,30 +21,25 @@ import {
   Sparkles,
   Share2,
   Printer,
-  Volume2,
-  VolumeX,
   Star,
-  MessageSquare,
-  ThumbsUp,
   Lock,
+  Check,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const ORDER_STEPS = [
-  { status: 'PENDING', label: 'Order Placed', icon: Clock, desc: 'Sent to kitchen terminal' },
+  { status: 'PENDING', label: 'Order placed', icon: Clock, desc: 'Sent to kitchen terminal' },
   { status: 'ACCEPTED', label: 'Accepted', icon: CheckCircle2, desc: 'Kitchen acknowledged ticket' },
   { status: 'PREPARING', label: 'Cooking', icon: ChefHat, desc: 'Chef is preparing your food' },
-  { status: 'READY', label: 'Ready for Pickup', icon: BellRing, desc: 'Collect at the canteen counter' },
-  { status: 'COMPLETED', label: 'Completed', icon: Utensils, desc: 'Enjoy your meal!' },
+  { status: 'READY', label: 'Ready for pickup', icon: BellRing, desc: 'Collect at the canteen counter' },
+  { status: 'COMPLETED', label: 'Completed', icon: Utensils, desc: 'Enjoy your meal' },
 ];
 
 export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string }) {
   const params = useParams();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { user, role } = useAuth();
 
-  // Resolve orderId from params, searchParams (?id=...), or window.location
   let resolvedId = (params?.id as string) || searchParams?.get('id') || searchParams?.get('order_id') || initialOrderId;
   if ((!resolvedId || resolvedId === 'sample-order') && typeof window !== 'undefined') {
     const pathMatch = window.location.pathname.match(/orders\/([a-zA-Z0-9-]+)/);
@@ -60,10 +54,8 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [hasSpokenReady, setHasSpokenReady] = useState(false);
-  
-  // Rating states
+
   const [rating, setRating] = useState<number>(5);
   const [feedbackTags, setFeedbackTags] = useState<string[]>([]);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
@@ -77,7 +69,6 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
     if (res.success && res.order) {
       setOrder(res.order);
 
-      // Voice synthesis announcement & mobile haptic vibration when order is READY
       if (res.order.status === 'READY' && !hasSpokenReady) {
         setHasSpokenReady(true);
         if (typeof navigator !== 'undefined' && (navigator as any).vibrate) {
@@ -125,7 +116,7 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
     const itemsSummary = order.order_items?.map((i: any) => `• ${i.quantity}x ${i.menu_items?.name}`).join('\n') || '';
     const trackUrl = `${window.location.origin}/canteen-ordering-system/orders/?id=${order.id}`;
 
-    const text = `*🍛 GPREC Food Court Order Receipt*\n\n*Order Number:* ${order.order_number}\n*Location:* ${tableNum}\n*Status:* ${order.status}\n\n*Items:*\n${itemsSummary}\n\n*Total Paid:* ₹${order.total_amount}\n\n*Live Order Status:* ${trackUrl}`;
+    const text = `*GPREC Food Court Order Receipt*\n\n*Order Number:* ${order.order_number}\n*Location:* ${tableNum}\n*Status:* ${order.status}\n\n*Items:*\n${itemsSummary}\n\n*Total Paid:* ₹${order.total_amount}\n\n*Live Order Status:* ${trackUrl}`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -141,31 +132,28 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
 
   if (loading) {
     return (
-      <div className="max-w-xl mx-auto py-16 text-center space-y-3">
-        <RotateCw className="h-8 w-8 animate-spin mx-auto text-primary" />
-        <p className="text-sm font-semibold text-slate-600">Loading your live order status...</p>
+      <div className="mx-auto max-w-xl space-y-3 py-16 text-center">
+        <RotateCw className="mx-auto h-8 w-8 animate-spin text-primary-deep" />
+        <p className="text-sm font-semibold text-muted-foreground">Loading your live order status...</p>
       </div>
     );
   }
 
   if (!order) {
     return (
-      <div className="max-w-md mx-auto py-16 text-center space-y-4 font-sans">
-        <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto" />
-        <h2 className="text-xl font-bold text-slate-900">Order Not Found</h2>
+      <div className="mx-auto max-w-md space-y-4 py-16 text-center">
+        <AlertTriangle className="mx-auto h-12 w-12 text-primary-deep" />
+        <h2 className="font-display text-xl font-bold text-ink">Order not found</h2>
         <p className="text-xs text-muted-foreground">
-          We couldn&apos;t find an active order with reference ID: {orderId}
+          We couldn&rsquo;t find an active order with reference ID: <span className="numeric">{orderId}</span>
         </p>
         <Link href="/menu">
-          <Button className="bg-primary hover:bg-primary/90 text-white rounded-2xl font-bold">
-            Return to Menu
-          </Button>
+          <Button className="rounded-lg font-bold">Return to menu</Button>
         </Link>
       </div>
     );
   }
 
-  // --- Strict User Privacy & Authorization Gate ---
   const isAdminOrStaff =
     role === 'ADMIN' ||
     role === 'SUPER_ADMIN' ||
@@ -174,13 +162,11 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
 
   let isOwner = false;
   if (isAdminOrStaff) {
-    isOwner = true; // Admin and Kitchen operations are completely undisturbed
+    isOwner = true;
   } else {
-    // 1. Check user_id match
     if (user?.id && order.user_id && order.user_id === user.id) {
       isOwner = true;
     }
-    // 2. Check local storage ownership
     if (typeof window !== 'undefined') {
       try {
         const myOrders: string[] = JSON.parse(localStorage.getItem('canteen_my_orders') || '[]');
@@ -189,7 +175,6 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
         }
       } catch (e) {}
 
-      // 3. Check table session id match
       try {
         const tableInfo = JSON.parse(localStorage.getItem('canteen_table_info') || '{}');
         if (tableInfo.sessionId && order.session_id === tableInfo.sessionId) {
@@ -199,26 +184,23 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
     }
   }
 
-  // If unauthorized visitor attempts to view another user's order
   if (!isOwner) {
     return (
-      <div className="max-w-md mx-auto py-16 text-center space-y-4 font-sans">
-        <div className="w-14 h-14 rounded-full bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto shadow-sm">
+      <div className="mx-auto max-w-md space-y-4 py-16 text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-chutney/25 bg-chutney/10 text-chutney">
           <Lock className="h-7 w-7" />
         </div>
-        <h2 className="text-xl font-bold text-slate-900">Order Privacy Protected</h2>
-        <p className="text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto">
-          This order belongs to another student or faculty member. In accordance with campus privacy policies, one&apos;s meal details, contact notes, and billing records are strictly restricted to the order owner and authorized canteen administrators.
+        <h2 className="font-display text-xl font-bold text-ink">Order privacy protected</h2>
+        <p className="mx-auto max-w-sm text-xs leading-relaxed text-muted-foreground">
+          This order belongs to another student or faculty member. Under campus privacy policy, meal details, contact notes and billing records are restricted to the order owner and authorized canteen staff.
         </p>
-        <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row">
           <Link href="/menu">
-            <Button className="bg-primary hover:bg-primary/90 text-white rounded-2xl text-xs font-bold px-5">
-              Return to My Menu
-            </Button>
+            <Button className="rounded-lg px-5 text-xs font-bold">Return to my menu</Button>
           </Link>
           <Link href="/auth/login">
-            <Button variant="outline" className="rounded-2xl text-xs font-semibold">
-              Sign In with Account
+            <Button variant="outline" className="rounded-lg border-ink/15 bg-card text-xs font-semibold text-ink hover:bg-secondary">
+              Sign in with account
             </Button>
           </Link>
         </div>
@@ -235,13 +217,42 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
   const canCustomerCancel = order.status === 'PENDING' || order.status === 'CONFIRMED';
   const tableNum = order.table_sessions?.tables?.table_number || 'Canteen Counter';
 
+  // Status banner: marigold reads on ink text, everything else on cream text
+  const bannerBg = isCancelled
+    ? 'bg-chutney text-white'
+    : order.status === 'READY'
+    ? 'bg-leaf text-white motion-safe:animate-pulse'
+    : order.status === 'PREPARING'
+    ? 'bg-primary text-primary-foreground'
+    : 'bg-ink text-background';
+
+  const bannerTitle = isCancelled
+    ? 'Order cancelled'
+    : order.status === 'READY'
+    ? 'Order ready for pickup'
+    : order.status === 'PREPARING'
+    ? 'Cooking in the kitchen'
+    : order.status === 'ACCEPTED'
+    ? 'Kitchen accepted your order'
+    : order.status === 'COMPLETED'
+    ? 'Order completed'
+    : 'Order received';
+
+  const bannerSub = isCancelled
+    ? 'This order was cancelled. No charges applied.'
+    : order.status === 'READY'
+    ? 'Head to the canteen pickup counter with your token number.'
+    : order.status === 'PREPARING'
+    ? 'Freshly preparing your hot meal. Estimated time ~5-10 mins.'
+    : 'Our kitchen team has received your ticket.';
+
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      {/* Top Header Controls */}
+    <div className="mx-auto max-w-2xl space-y-6">
+      {/* Controls */}
       <div className="flex items-center justify-between print:hidden">
         <Link href="/orders">
-          <Button variant="ghost" size="sm" className="rounded-xl text-xs font-semibold">
-            <ArrowLeft className="h-3.5 w-3.5 mr-1" /> All Orders
+          <Button variant="ghost" size="sm" className="rounded-lg text-xs font-semibold text-ink">
+            <ArrowLeft className="mr-1 h-3.5 w-3.5" /> All orders
           </Button>
         </Link>
         <div className="flex items-center gap-2">
@@ -249,75 +260,44 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
             variant="outline"
             size="sm"
             onClick={handleWhatsAppShare}
-            className="rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+            className="rounded-lg border-leaf/30 bg-leaf/10 text-xs font-bold text-leaf hover:bg-leaf/20"
           >
-            <Share2 className="h-3.5 w-3.5 mr-1.5" /> Share Bill
+            <Share2 className="mr-1.5 h-3.5 w-3.5" /> Share bill
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePrint}
-            className="rounded-xl text-xs font-semibold text-slate-700"
-          >
-            <Printer className="h-3.5 w-3.5 mr-1" /> Print
+          <Button variant="outline" size="sm" onClick={handlePrint} className="rounded-lg border-ink/15 bg-card text-xs font-semibold text-ink hover:bg-secondary">
+            <Printer className="mr-1 h-3.5 w-3.5" /> Print
           </Button>
-          <Button variant="outline" size="sm" onClick={fetchOrder} className="rounded-xl text-xs">
-            <RotateCw className="h-3 w-3 mr-1" /> Refresh
+          <Button variant="outline" size="sm" onClick={fetchOrder} className="rounded-lg border-ink/15 bg-card text-xs text-ink hover:bg-secondary">
+            <RotateCw className="mr-1 h-3 w-3" /> Refresh
           </Button>
         </div>
       </div>
 
       {errorMsg && (
-        <div className="bg-destructive/15 text-destructive p-4 rounded-2xl text-xs font-semibold border border-destructive/20">
+        <div className="rounded-lg border border-chutney/30 bg-chutney/10 p-4 text-xs font-semibold text-chutney">
           {errorMsg}
         </div>
       )}
 
-      {/* Main Order Status Card */}
-      <Card className="rounded-3xl border border-slate-200/80 shadow-md bg-white overflow-hidden print:border-none print:shadow-none">
-        <div className={`p-6 text-white text-center space-y-2 ${
-          isCancelled
-            ? 'bg-rose-600'
-            : order.status === 'READY'
-            ? 'bg-emerald-600 animate-pulse'
-            : order.status === 'PREPARING'
-            ? 'bg-amber-500'
-            : order.status === 'ACCEPTED'
-            ? 'bg-blue-600'
-            : 'bg-slate-900'
-        }`}>
-          <Badge className="bg-white/20 text-white border-0 text-[10px] font-bold uppercase tracking-wider">
+      {/* Status card */}
+      <Card className="tray-card overflow-hidden print:border-none print:shadow-none">
+        <div className={`space-y-2 p-6 text-center ${bannerBg}`}>
+          <Badge className="border-0 bg-white/20 text-[10px] font-bold uppercase tracking-wider text-current numeric">
             {order.order_number || `CAN-2026-${order.id.slice(0, 4)}`}
           </Badge>
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            {isCancelled
-              ? 'Order Cancelled'
-              : order.status === 'READY'
-              ? '🔔 Order Ready for Pickup!'
-              : order.status === 'PREPARING'
-              ? '🔥 Cooking in the Kitchen...'
-              : order.status === 'ACCEPTED'
-              ? '👍 Kitchen Accepted Your Order'
-              : order.status === 'COMPLETED'
-              ? '✨ Order Completed'
-              : '⏳ Order Received'}
+          <h2 className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl">
+            {bannerTitle}
           </h2>
-          <p className="text-xs opacity-90 font-medium max-w-sm mx-auto">
-            {isCancelled
-              ? 'This order was cancelled. No charges applied.'
-              : order.status === 'READY'
-              ? 'Please head to the canteen pickup counter with your token number.'
-              : order.status === 'PREPARING'
-              ? 'Freshly preparing your hot meal. Estimated time: ~5-10 mins.'
-              : 'Our kitchen team has received your ticket.'}
+          <p className="mx-auto max-w-sm text-xs font-medium opacity-90">
+            {bannerSub}
           </p>
         </div>
 
-        {/* Progress Step Bar */}
+        {/* Progress bar */}
         {!isCancelled && (
-          <div className="p-6 bg-slate-50/60 border-b border-slate-100 print:hidden">
-            <div className="relative flex items-center justify-between max-w-md mx-auto">
-              <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-slate-200 z-0">
+          <div className="border-b border-border bg-secondary/50 p-6 print:hidden">
+            <div className="relative mx-auto flex max-w-md items-center justify-between">
+              <div className="absolute left-0 right-0 top-1/2 z-0 h-1 -translate-y-1/2 bg-border">
                 <div
                   className="h-full bg-primary transition-all duration-500"
                   style={{
@@ -334,19 +314,19 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
                 return (
                   <div key={step.status} className="relative z-10 flex flex-col items-center">
                     <div
-                      className={`w-9 h-9 rounded-full flex items-center justify-center border-2 transition-all ${
+                      className={`flex h-9 w-9 items-center justify-center rounded-full border-2 transition-all ${
                         isCurrent
-                          ? 'bg-primary border-primary text-white scale-110 shadow-md ring-4 ring-orange-100'
+                          ? 'scale-110 border-primary bg-primary text-primary-foreground shadow-md ring-4 ring-primary/20'
                           : isPassed
-                          ? 'bg-primary border-primary text-white'
-                          : 'bg-white border-slate-300 text-slate-400'
+                          ? 'border-primary bg-primary text-primary-foreground'
+                          : 'border-border bg-card text-steel'
                       }`}
                     >
                       <StepIcon className="h-4 w-4" />
                     </div>
                     <span
-                      className={`text-[10px] font-bold mt-2 text-center max-w-[64px] leading-tight ${
-                        isCurrent ? 'text-primary' : isPassed ? 'text-slate-800' : 'text-slate-400'
+                      className={`mt-2 max-w-[64px] text-center text-[10px] font-bold leading-tight ${
+                        isCurrent ? 'text-primary-deep' : isPassed ? 'text-ink' : 'text-steel'
                       }`}
                     >
                       {step.label}
@@ -358,22 +338,21 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
           </div>
         )}
 
-        {/* Live Prep Time & Countdown Gauge */}
+        {/* Prep gauge */}
         {!isCancelled && !isCompleted && (
-          <div className="p-5 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/5 border-b border-slate-100 flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-4 border-b border-border bg-primary/5 p-5">
             <div className="flex items-center gap-3">
-              {/* Circular SVG Progress Ring */}
-              <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
-                <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
+              <div className="relative flex h-12 w-12 shrink-0 items-center justify-center">
+                <svg className="h-12 w-12 -rotate-90" viewBox="0 0 36 36">
                   <path
-                    className="text-slate-200"
+                    className="text-border"
                     strokeWidth="3.5"
                     stroke="currentColor"
                     fill="none"
                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                   />
                   <path
-                    className={order.status === 'READY' ? 'text-emerald-500' : 'text-orange-500'}
+                    className={order.status === 'READY' ? 'text-leaf' : 'text-primary'}
                     strokeDasharray={order.status === 'READY' ? '100, 100' : '65, 100'}
                     strokeWidth="3.5"
                     strokeLinecap="round"
@@ -382,32 +361,32 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                   />
                 </svg>
-                <div className="absolute text-[11px] font-black text-slate-900">
-                  {order.status === 'READY' ? '✓' : '~5m'}
+                <div className="numeric absolute text-[11px] font-bold text-ink">
+                  {order.status === 'READY' ? <Check className="h-4 w-4 text-leaf" /> : '~5m'}
                 </div>
               </div>
 
               <div>
-                <span className="text-xs font-bold text-slate-900 block">
+                <span className="block text-xs font-bold text-ink">
                   {order.status === 'READY'
-                    ? 'Meal Ready at Counter!'
+                    ? 'Meal ready at counter'
                     : order.status === 'PREPARING'
-                    ? 'Chef is Sizzling Your Order'
-                    : 'Order Queued for Cooking'}
+                    ? 'Chef is cooking your order'
+                    : 'Order queued for cooking'}
                 </span>
-                <span className="text-[11px] text-muted-foreground font-medium">
+                <span className="text-[11px] font-medium text-muted-foreground">
                   {order.status === 'READY'
                     ? 'Pickup with token number'
-                    : 'Target prep window: 5–8 mins'}
+                    : 'Target prep window: 5-8 mins'}
                 </span>
               </div>
             </div>
 
             <Badge
-              className={`text-[10px] font-black border-0 px-2 py-0.5 ${
+              className={`border-0 px-2 py-0.5 text-[10px] font-bold ${
                 order.status === 'READY'
-                  ? 'bg-emerald-500 text-white animate-pulse'
-                  : 'bg-amber-500 text-slate-950'
+                  ? 'bg-leaf text-white motion-safe:animate-pulse'
+                  : 'bg-primary text-primary-foreground'
               }`}
             >
               {order.status === 'READY' ? 'READY' : 'IN KITCHEN'}
@@ -415,100 +394,97 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
           </div>
         )}
 
-        {/* Details & Bill */}
-        <CardContent className="p-6 space-y-4">
-          <div className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 p-3 rounded-2xl border">
-            <div className="flex items-center gap-1.5 font-semibold text-slate-800">
-              <MapPin className="h-4 w-4 text-primary" />
-              {tableNum} &bull; GPREC Food Court
+        {/* Bill */}
+        <CardContent className="space-y-4 p-6">
+          <div className="flex items-center justify-between rounded-lg border border-border bg-secondary/50 p-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5 font-semibold text-ink">
+              <MapPin className="h-4 w-4 text-primary-deep" />
+              {tableNum} &middot; GPREC Food Court
             </div>
-            <div>Placed: {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+            <div>Placed: <span className="numeric">{new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
           </div>
 
           <div className="space-y-3 pt-2">
-            <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-              <Receipt className="h-3.5 w-3.5 text-slate-500" /> Itemized Bill
+            <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink">
+              <Receipt className="h-3.5 w-3.5 text-steel" /> Itemized bill
             </h4>
-            <div className="divide-y divide-slate-100 rounded-2xl border bg-white p-4 space-y-2">
+            <div className="space-y-2 divide-y divide-border rounded-lg border border-border bg-card p-4">
               {order.order_items?.map((item: any) => (
-                <div key={item.id} className="pt-2 first:pt-0 flex items-start justify-between">
+                <div key={item.id} className="flex items-start justify-between pt-2 first:pt-0">
                   <div>
-                    <div className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                    <div className="flex items-center gap-2 font-display text-sm font-bold text-ink">
                       <span className="veg-indicator"><span className="veg-indicator-dot"></span></span>
-                      <span>{item.menu_items?.name || 'Food Item'}</span>
-                      <span className="text-xs text-muted-foreground font-semibold">&times; {item.quantity}</span>
+                      <span>{item.menu_items?.name || 'Food item'}</span>
+                      <span className="numeric text-xs font-semibold text-muted-foreground">&times; {item.quantity}</span>
                     </div>
                     {item.order_item_addons?.length > 0 && (
-                      <div className="flex flex-wrap gap-1 pt-1 pl-6">
+                      <div className="flex flex-wrap gap-1 pl-6 pt-1">
                         {item.order_item_addons.map((a: any) => (
-                          <Badge key={a.id} variant="secondary" className="text-[10px] bg-slate-100">
-                            +{a.menu_item_addon_options?.name} (+₹{a.price_adjustment})
+                          <Badge key={a.id} variant="secondary" className="border border-border bg-secondary text-[10px] text-ink">
+                            +{a.menu_item_addon_options?.name} (<span className="numeric">+₹{a.price_adjustment}</span>)
                           </Badge>
                         ))}
                       </div>
                     )}
                   </div>
-                  <span className="font-bold text-sm text-slate-900">₹{item.subtotal}</span>
+                  <span className="numeric text-sm font-bold text-ink">₹{item.subtotal}</span>
                 </div>
               ))}
 
-              <div className="pt-3 border-t flex justify-between items-center text-base font-extrabold text-slate-900">
-                <span>Total Amount Paid</span>
-                <span className="text-primary text-xl font-black">₹{order.total_amount}</span>
+              <div className="flex items-center justify-between border-t border-border pt-3 text-base font-extrabold text-ink">
+                <span>Total amount paid</span>
+                <span className="numeric text-xl font-extrabold text-primary-deep">₹{order.total_amount}</span>
               </div>
             </div>
           </div>
 
-          {/* 5-Star Meal Rating & Review Widget when order is COMPLETED */}
+          {/* Rating */}
           {isCompleted && (
-            <div className="p-5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 rounded-2xl space-y-3 print:hidden">
+            <div className="space-y-3 rounded-lg border border-primary/25 bg-primary/5 p-5 print:hidden">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  <Sparkles className="h-4 w-4 text-amber-500" /> How was your meal?
+                <span className="flex items-center gap-1.5 text-xs font-bold text-ink">
+                  <Sparkles className="h-4 w-4 text-primary-deep" /> How was your meal?
                 </span>
                 {ratingSubmitted && (
-                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                    ✓ Feedback Saved
+                  <Badge variant="secondary" className="bg-leaf/15 text-[10px] font-bold text-leaf">
+                    Feedback saved
                   </Badge>
                 )}
               </div>
 
               {!ratingSubmitted ? (
                 <div className="space-y-3">
-                  {/* Star Selector */}
                   <div className="flex items-center gap-2">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
                         key={star}
                         type="button"
                         onClick={() => setRating(star)}
-                        className="p-1 hover:scale-125 transition-transform"
+                        className="p-1 transition-transform hover:scale-125"
+                        aria-label={`Rate ${star} stars`}
                       >
                         <Star
                           className={`h-7 w-7 ${
-                            star <= rating
-                              ? 'fill-amber-400 text-amber-400'
-                              : 'text-slate-300'
+                            star <= rating ? 'fill-primary text-primary' : 'text-border'
                           }`}
                         />
                       </button>
                     ))}
-                    <span className="text-xs font-extrabold text-amber-900 ml-2">
-                      {rating === 5 ? 'Exceptional! 🌟' : rating === 4 ? 'Great 👍' : 'Good 👌'}
+                    <span className="ml-2 text-xs font-extrabold text-primary-deep">
+                      {rating === 5 ? 'Exceptional' : rating === 4 ? 'Great' : 'Good'}
                     </span>
                   </div>
 
-                  {/* Feedback Tags */}
                   <div className="flex flex-wrap gap-1.5">
-                    {['Super Crispy 🔥', 'Hot & Fresh 🍲', 'Fast Counter Service ⚡', 'Authentic Taste 😋', 'Perfect Spice 🌶️'].map((tag) => (
+                    {['Super crispy', 'Hot and fresh', 'Fast service', 'Authentic taste', 'Perfect spice'].map((tag) => (
                       <button
                         key={tag}
                         type="button"
                         onClick={() => toggleTag(tag)}
-                        className={`text-xs px-2.5 py-1 rounded-xl font-semibold border transition ${
+                        className={`rounded-lg border px-2.5 py-1 text-xs font-semibold transition ${
                           feedbackTags.includes(tag)
-                            ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
-                            : 'bg-white text-slate-700 border-amber-200 hover:bg-amber-100/50'
+                            ? 'border-primary bg-primary text-primary-foreground'
+                            : 'border-primary/25 bg-card text-ink hover:bg-primary/5'
                         }`}
                       >
                         {tag}
@@ -519,14 +495,14 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
                   <Button
                     size="sm"
                     onClick={() => setRatingSubmitted(true)}
-                    className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold mt-1"
+                    className="mt-1 w-full rounded-lg bg-ink text-xs font-bold text-background hover:bg-ink/90"
                   >
-                    Submit Feedback & Ratings
+                    Submit feedback and rating
                   </Button>
                 </div>
               ) : (
-                <p className="text-xs text-slate-600">
-                  Thank you for rating your dining experience at GPREC Food Court!
+                <p className="text-xs text-muted-foreground">
+                  Thank you for rating your dining experience at GPREC Food Court.
                 </p>
               )}
             </div>
@@ -534,7 +510,7 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
         </CardContent>
 
         {canCustomerCancel && (
-          <CardFooter className="p-6 pt-0 border-t border-slate-100 bg-slate-50/50 py-4 flex items-center justify-between print:hidden">
+          <CardFooter className="flex items-center justify-between border-t border-border bg-secondary/50 p-6 py-4 print:hidden">
             <div className="text-xs text-muted-foreground">
               Need to change your mind?
             </div>
@@ -543,9 +519,9 @@ export function OrderTrackerClient({ initialOrderId }: { initialOrderId?: string
               size="sm"
               disabled={cancelling}
               onClick={handleCancel}
-              className="rounded-xl text-xs font-bold"
+              className="rounded-lg text-xs font-bold"
             >
-              {cancelling ? 'Cancelling...' : 'Cancel Order'}
+              {cancelling ? 'Cancelling...' : 'Cancel order'}
             </Button>
           </CardFooter>
         )}
